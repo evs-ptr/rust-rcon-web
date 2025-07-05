@@ -1,72 +1,70 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { confetti } from '@neoconfetti/svelte';
-	import type { ActionData, PageData } from './$types';
-	import { MediaQuery } from 'svelte/reactivity';
+	import { enhance } from '$app/forms'
+	import { confetti } from '@neoconfetti/svelte'
+	import type { ActionData, PageData } from './$types'
+	import { MediaQuery } from 'svelte/reactivity'
 
 	interface Props {
-		data: PageData;
-		form: ActionData;
+		data: PageData
+		form: ActionData
 	}
-	let { data, form = $bindable() }: Props = $props();
+	let { data, form = $bindable() }: Props = $props()
 
 	/** Whether the user prefers reduced motion */
-	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)')
 
 	/** Whether or not the user has won */
-	let won = $derived(data.answers.at(-1) === 'xxxxx');
+	let won = $derived(data.answers.at(-1) === 'xxxxx')
 
 	/** The index of the current guess */
-	let i = $derived(won ? -1 : data.answers.length);
+	let i = $derived(won ? -1 : data.answers.length)
 
 	/** The current guess */
-	let currentGuess = $derived(data.guesses[i] || '');
+	let currentGuess = $derived(data.guesses[i] || '')
 
 	/** Whether the current guess can be submitted */
-	let submittable = $derived(currentGuess.length === 5);
+	let submittable = $derived(currentGuess.length === 5)
 
 	const { classnames, description } = $derived.by(() => {
 		/**
 		 * A map of classnames for all letters that have been guessed,
 		 * used for styling the keyboard
 		 */
-		let classnames: Record<string, 'exact' | 'close' | 'missing'> = {};
+		let classnames: Record<string, 'exact' | 'close' | 'missing'> = {}
 		/**
 		 * A map of descriptions for all letters that have been guessed,
 		 * used for adding text for assistive technology (e.g. screen readers)
 		 */
-		let description: Record<string, string> = {};
+		let description: Record<string, string> = {}
 		data.answers.forEach((answer, i) => {
-			const guess = data.guesses[i];
+			const guess = data.guesses[i]
 			for (let i = 0; i < 5; i += 1) {
-				const letter = guess[i];
+				const letter = guess[i]
 				if (answer[i] === 'x') {
-					classnames[letter] = 'exact';
-					description[letter] = 'correct';
+					classnames[letter] = 'exact'
+					description[letter] = 'correct'
 				} else if (!classnames[letter]) {
-					classnames[letter] = answer[i] === 'c' ? 'close' : 'missing';
-					description[letter] = answer[i] === 'c' ? 'present' : 'absent';
+					classnames[letter] = answer[i] === 'c' ? 'close' : 'missing'
+					description[letter] = answer[i] === 'c' ? 'present' : 'absent'
 				}
 			}
-		});
-		return { classnames, description };
-	});
+		})
+		return { classnames, description }
+	})
 
 	/**
 	 * Modify the game state without making a trip to the server,
 	 * if client-side JavaScript is enabled
 	 */
 	function update(event: MouseEvent) {
-		event.preventDefault();
-		const key = (event.target as HTMLButtonElement).getAttribute(
-			'data-key'
-		);
+		event.preventDefault()
+		const key = (event.target as HTMLButtonElement).getAttribute('data-key')
 
 		if (key === 'backspace') {
-			currentGuess = currentGuess.slice(0, -1);
-			if (form?.badGuess) form.badGuess = false;
+			currentGuess = currentGuess.slice(0, -1)
+			if (form?.badGuess) form.badGuess = false
 		} else if (currentGuess.length < 5) {
-			currentGuess += key;
+			currentGuess += key
 		}
 	}
 
@@ -75,13 +73,13 @@
 	 * desktop users can use the keyboard to play the game
 	 */
 	function keydown(event: KeyboardEvent) {
-		if (event.metaKey) return;
+		if (event.metaKey) return
 
-		if (event.key === 'Enter' && !submittable) return;
+		if (event.key === 'Enter' && !submittable) return
 
 		document
 			.querySelector(`[data-key="${event.key}" i]`)
-			?.dispatchEvent(new MouseEvent('click', { cancelable: true, bubbles: true }));
+			?.dispatchEvent(new MouseEvent('click', { cancelable: true, bubbles: true }))
 	}
 </script>
 
@@ -100,8 +98,8 @@
 	use:enhance={() => {
 		// prevent default callback from resetting the form
 		return ({ update }) => {
-			update({ reset: false });
-		};
+			update({ reset: false })
+		}
 	}}
 >
 	<a class="how-to-play" href="/sverdle/how-to-play">How to play</a>
@@ -192,7 +190,7 @@
 			force: 0.7,
 			stageWidth: window.innerWidth,
 			stageHeight: window.innerHeight,
-			colors: ['#ff3e00', '#40b3ff', '#676778']
+			colors: ['#ff3e00', '#40b3ff', '#676778'],
 		}}
 	></div>
 {/if}
