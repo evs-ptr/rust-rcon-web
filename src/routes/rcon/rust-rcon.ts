@@ -67,12 +67,10 @@ export class RustRconConnection extends WebSocketWrapper {
 			}
 		})
 
-		const promise2 = new Promise((resolve, reject) => {
+		const promise2 = new Promise((_, reject) => {
 			setTimeout(() => {
-				if (this.messagesMap.has(msgId)) {
+				if (this.messagesMap.delete(msgId)) {
 					reject(new Error('Timed out waiting for response'))
-				} else {
-					resolve(undefined)
 				}
 			}, this.messageTimeOut)
 		})

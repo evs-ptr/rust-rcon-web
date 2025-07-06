@@ -34,17 +34,20 @@ export class WebSocketWrapper {
 			this.connectReject = reject
 			this.bindEvents()
 		})
-		const promise2 = new Promise((resolve, reject) => {
+		const promise2 = new Promise((_, reject) => {
 			setTimeout(() => {
-				if (!this.ws) {
+				if (!this.isConnected) {
 					reject(new Error('Timed out connecting to websocket'))
-				} else {
-					resolve(undefined)
 				}
 			}, this.connectTimeout)
 		})
 
 		this.connectPromise = Promise.race([promise1, promise2]).catch((error) => {
+			if (this.ws) {
+				// Prevent onclose from triggering a reconnect attempt
+				this.unbindEvents()
+				this.ws.close()
+			}
 			this.resetState()
 			throw error
 		})
