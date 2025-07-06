@@ -3,7 +3,10 @@
 </script>
 
 <header>
-	<nav></nav>
+	<nav>
+		<a href="/" class:active={page.url.pathname === '/'}>Home</a>
+		<a href="/rcon" class:active={page.url.pathname === '/rcon'}>RCON</a>
+	</nav>
 </header>
 
 <style>
