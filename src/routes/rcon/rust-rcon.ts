@@ -37,6 +37,11 @@ export class RustRconConnection extends WebSocketWrapper {
 		super(url)
 	}
 
+	disconnect() {
+		super.disconnect()
+		this.messagesMap.clear()
+	}
+
 	onMessage(event: MessageEvent) {
 		super.onMessage(event)
 
