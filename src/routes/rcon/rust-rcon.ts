@@ -21,8 +21,11 @@ enum LogType {
 	Subscription = 6,
 }
 
+const MAX_INT_32 = 2_147_483_647
+const MIN_INT_32 = -2_147_483_648
+
 export class RustRconConnection extends WebSocketWrapper {
-	private msgIdNext = 696
+	private msgIdNext: number = MAX_INT_32 - 1
 
 	private readonly messagesMap = new Map<
 		number,
@@ -44,24 +47,43 @@ export class RustRconConnection extends WebSocketWrapper {
 		if (resolve) {
 			this.messagesMap.delete(msg.Identifier)
 			resolve(msg)
+			return
 		}
 		console.log('onMessage', msg)
 	}
 
-	async sendCommand(command: string): Promise<CommandResponse> {
-		const msgId = this.msgIdNext
-		this.msgIdNext += 1
+	private takeNextMsgId(): number {
+		const current = this.msgIdNext
+
+		if (current >= MAX_INT_32 - 1) {
+			this.msgIdNext = MIN_INT_32
+		} else if (current == -1) {
+			this.msgIdNext = 69 // skipping common ones
+		} else {
+			this.msgIdNext += 1
+		}
+
+		return current
+	}
+
+	constructMessage(command: string): CommandSend {
+		const msgId = this.takeNextMsgId()
+		return {
+			Message: command,
+			Identifier: msgId,
+		} satisfies CommandSend
+	}
+
+	async sendCommandGetResponse(command: string): Promise<CommandResponse> {
+		const msg = this.constructMessage(command)
 
 		const promise1 = new Promise((resolve, reject) => {
-			const msg = {
-				Message: command,
-				Identifier: msgId,
-			} satisfies CommandSend
-
 			const serialized = JSON.stringify(msg)
 
+			console.log('sendCommandGetResponse', serialized)
+
 			if (this.send(serialized)) {
-				this.messagesMap.set(msgId, resolve)
+				this.messagesMap.set(msg.Identifier, resolve)
 			} else {
 				reject(new Error('Failed to send message'))
 			}
@@ -69,7 +91,7 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		const promise2 = new Promise((_, reject) => {
 			setTimeout(() => {
-				if (this.messagesMap.delete(msgId)) {
+				if (this.messagesMap.delete(msg.Identifier)) {
 					reject(new Error('Timed out waiting for response'))
 				}
 			}, this.messageTimeOut)
