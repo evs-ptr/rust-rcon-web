@@ -1,4 +1,4 @@
-import { RustServer } from './rust-server'
+import { RustServer } from './rust-server.svelte'
 
 export function createServersManager() {
 	const servers = $state<RustServer[]>([])
