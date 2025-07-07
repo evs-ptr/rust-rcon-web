@@ -6,8 +6,19 @@
 	}
 
 	let { server }: Props = $props()
+
+	function tryConnect() {
+		server.connect()
+	}
 </script>
 
-<div>
+<div class="flex flex-col gap-2">
 	<h2>Server: {server.ipPort}</h2>
+	{#if !server.connectionWasEstablished}
+		<div class="flex flex-col gap-2">
+			<input type="text" bind:value={server.ipPort} />
+			<input type="password" bind:value={server.password} />
+			<button onclick={tryConnect}>Connect</button>
+		</div>
+	{/if}
 </div>

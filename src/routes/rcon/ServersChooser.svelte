@@ -11,8 +11,7 @@
 
 	function addBlankServer() {
 		const newServer = serversManager.addServer()
-		newServer.ipPort = `127.0.0.1:${Math.floor(Math.random() * 10000)}`
-		newServer.password = '123456'
+		newServer.ipPort = '127.0.0.1:'
 	}
 
 	function switchServer(server: RustServer) {
