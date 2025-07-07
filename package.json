@@ -1,5 +1,5 @@
 {
-	"name": "rcon-web",
+	"name": "rust-rcon-web",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
