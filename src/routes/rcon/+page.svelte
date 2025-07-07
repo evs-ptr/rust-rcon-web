@@ -16,6 +16,8 @@
 
 		const response3 = await rcon.sendCommandGetResponse('console.tail 100')
 		console.log('response3', response3)
+
+		rcon.sendCommand('console.ta')
 	})
 
 	onDestroy(() => {

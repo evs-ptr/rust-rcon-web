@@ -24,6 +24,9 @@ enum LogType {
 const MAX_INT_32 = 2_147_483_647
 const MIN_INT_32 = -2_147_483_648
 
+const MSG_ID_INITIAL_START = 699
+const MSG_ID_REG_COMMAND = 698
+
 export class RustRconConnection extends WebSocketWrapper {
 	private msgIdNext: number = MAX_INT_32 - 1
 
@@ -62,8 +65,8 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		if (current >= MAX_INT_32 - 1) {
 			this.msgIdNext = MIN_INT_32
-		} else if (current == -1) {
-			this.msgIdNext = 69 // skipping common ones
+		} else if (current >= -1 && current < MSG_ID_INITIAL_START) {
+			this.msgIdNext = MSG_ID_INITIAL_START // skipping common ones
 		} else {
 			this.msgIdNext += 1
 		}
@@ -71,8 +74,7 @@ export class RustRconConnection extends WebSocketWrapper {
 		return current
 	}
 
-	constructMessage(command: string): CommandSend {
-		const msgId = this.takeNextMsgId()
+	constructMessage(command: string, msgId: number): CommandSend {
 		return {
 			Message: command,
 			Identifier: msgId,
@@ -80,15 +82,16 @@ export class RustRconConnection extends WebSocketWrapper {
 	}
 
 	async sendCommandGetResponse(command: string): Promise<CommandResponse> {
-		const msg = this.constructMessage(command)
+		const msgId = this.takeNextMsgId()
 
 		const promise1 = new Promise((resolve, reject) => {
+			const msg = this.constructMessage(command, msgId)
 			const serialized = JSON.stringify(msg)
 
 			console.log('sendCommandGetResponse', serialized)
 
 			if (this.send(serialized)) {
-				this.messagesMap.set(msg.Identifier, resolve)
+				this.messagesMap.set(msgId, resolve)
 			} else {
 				reject(new Error('Failed to send message'))
 			}
@@ -96,12 +99,19 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		const promise2 = new Promise((_, reject) => {
 			setTimeout(() => {
-				if (this.messagesMap.delete(msg.Identifier)) {
+				if (this.messagesMap.delete(msgId)) {
 					reject(new Error('Timed out waiting for response'))
 				}
 			}, this.messageTimeOut)
 		})
 
 		return Promise.race([promise1, promise2]) as Promise<CommandResponse>
+	}
+
+	sendCommand(command: string) {
+		const msg = this.constructMessage(command, MSG_ID_REG_COMMAND)
+		const serialized = JSON.stringify(msg)
+		console.log('sendCommand', serialized)
+		return this.send(serialized)
 	}
 }
