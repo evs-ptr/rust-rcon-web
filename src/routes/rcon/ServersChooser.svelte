@@ -22,13 +22,13 @@
 
 <div class="flex flex-row gap-2">
 	{#each serversManager.servers as server (server.id)}
-		<div onclick={() => switchServer(server)}>
+		<button onclick={() => switchServer(server)}>
 			<!-- TODO: is connected indicator -->
 			<!-- TODO: server name if exists -->
 			<span>{server.ipPort}</span>
 			<!-- TODO: server fps -->
 			<!-- TODO: delete button -->
-		</div>
+		</button>
 	{/each}
 	<button onclick={addBlankServer}> Add Server </button>
 </div>
