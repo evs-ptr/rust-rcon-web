@@ -24,11 +24,11 @@ enum LogType {
 const MAX_INT_32 = 2_147_483_647
 const MIN_INT_32 = -2_147_483_648
 
-const MSG_ID_INITIAL_START = 699
-const MSG_ID_REG_COMMAND = 698
+const MSG_ID_SAFE_START = 1699
+const MSG_ID_REG_COMMAND = -698
 
 export class RustRconConnection extends WebSocketWrapper {
-	private msgIdNext: number = MAX_INT_32 - 1
+	private msgIdNext: number = MIN_INT_32
 
 	private readonly messagesMap = new Map<
 		number,
@@ -73,8 +73,8 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		if (current >= MAX_INT_32 - 1) {
 			this.msgIdNext = MIN_INT_32
-		} else if (current >= -1 && current < MSG_ID_INITIAL_START) {
-			this.msgIdNext = MSG_ID_INITIAL_START // skipping common ones
+		} else if (current >= MSG_ID_REG_COMMAND - 1 && current < MSG_ID_SAFE_START) {
+			this.msgIdNext = MSG_ID_SAFE_START // skipping common ones
 		} else {
 			this.msgIdNext += 1
 		}
