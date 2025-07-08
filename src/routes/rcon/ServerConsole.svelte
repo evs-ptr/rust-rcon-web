@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte'
 	import type { RustServer } from './rust-server.svelte'
 	import {
 		getServerConsoleStore,
@@ -13,9 +14,26 @@
 	let { server }: Props = $props()
 	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id))
 
-	let consoleContainer: HTMLDivElement | undefined
-	const SCROLL_THRESHOLD = 16 * 2.5
-	let shouldScroll = false
+	let consoleContainer: HTMLDivElement | undefined = $state()
+
+	function calculateShouldScroll() {
+		const SCROLL_THRESHOLD = 16 * 2.5
+		if (!consoleContainer) {
+			return false
+		}
+
+		return (
+			consoleContainer.scrollHeight - consoleContainer.clientHeight - consoleContainer.scrollTop <
+			SCROLL_THRESHOLD
+		)
+	}
+
+	function scrollToBottom() {
+		if (!consoleContainer) {
+			return
+		}
+		consoleContainer.scrollTop = consoleContainer.scrollHeight
+	}
 
 	$effect.pre(() => {
 		// This is needed to make sure that the effect is triggered on messages change
@@ -25,17 +43,11 @@
 			return
 		}
 
-		shouldScroll =
-			consoleContainer.scrollHeight - consoleContainer.clientHeight - consoleContainer.scrollTop <
-			SCROLL_THRESHOLD
-	})
-
-	$effect(() => {
-		// This is needed to make sure that the effect is triggered on messages change
-		store.messages.length
-
-		if (shouldScroll && consoleContainer) {
-			consoleContainer.scrollTop = consoleContainer.scrollHeight
+		const shouldScroll = calculateShouldScroll()
+		if (shouldScroll) {
+			tick().then(() => {
+				scrollToBottom()
+			})
 		}
 	})
 
