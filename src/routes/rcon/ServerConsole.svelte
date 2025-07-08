@@ -52,8 +52,7 @@
 			return
 		}
 
-		shouldScroll =
-			calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
+		shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
 		if (shouldScroll) {
 			tick().then(() => {
 				scrollToBottom()

@@ -30,11 +30,7 @@ export class ServerConsoleStore {
 	private isPopulatedConsole: boolean = false
 	private unsubscribe: (() => void) | null = null
 
-	addMessageRaw(
-		message: string,
-		type: ServerConsoleMessageType,
-		consoleType: LogType = LogType.Generic
-	) {
+	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
 		const msg = new ServerConsoleMessage(message, type, consoleType)
 		this.messages.push(msg)
 		return msg

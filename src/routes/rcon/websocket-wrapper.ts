@@ -69,10 +69,7 @@ export class WebSocketWrapper {
 		}
 
 		this.reconnectAttempts++
-		const delay = Math.min(
-			this.baseReconnectDelay * Math.pow(1.3, this.reconnectAttempts - 1),
-			15_000
-		)
+		const delay = Math.min(this.baseReconnectDelay * Math.pow(1.3, this.reconnectAttempts - 1), 15_000)
 
 		console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`)
 
