@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte'
 	import type { CommandResponse } from './rust-rcon'
 	import type { RustServer } from './rust-server.svelte'
-	import { serverConsoleStore } from './server-console.svelte'
+	import { serverConsoleStore as store } from './server-console.svelte'
 
 	interface Props {
 		server: RustServer
@@ -15,7 +15,7 @@
 
 	function onMessage(msg: CommandResponse) {
 		console.log(msg)
-		serverConsoleStore.messages.push(msg.Message)
+		store.messages.push(msg.Message)
 	}
 
 	onMount(() => {
@@ -31,14 +31,32 @@
 	onDestroy(() => {
 		unsubscribe?.()
 	})
+
+	function handleSubmit() {
+		if (store.commandInput.trim() === '') {
+			return
+		}
+		server.sendCommand(store.commandInput)
+		store.commandInput = ''
+	}
 </script>
 
 <div>
 	<div class="flex h-96 flex-col gap-2 overflow-x-scroll font-mono text-xs">
-		{#each serverConsoleStore.messages as message}
+		{#each store.messages as message}
 			<div>
 				<span class="overflow-x-scroll text-nowrap">{message}</span>
 			</div>
 		{/each}
+	</div>
+	<div>
+		<form onsubmit={handleSubmit} class="flex gap-2">
+			<input
+				type="text"
+				bind:value={store.commandInput}
+				class="flex-grow rounded border bg-transparent p-2"
+			/>
+			<button type="submit">Send</button>
+		</form>
 	</div>
 </div>
