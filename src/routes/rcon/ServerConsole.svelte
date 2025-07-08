@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { CommandResponse } from './rust-rcon'
 	import type { RustServer } from './rust-server.svelte'
-	import { getServerConsoleStore, type ServerConsoleStore } from './server-console.svelte'
+	import {
+		getServerConsoleStore,
+		ServerConsoleMessageType,
+		type ServerConsoleStore,
+	} from './server-console.svelte'
 
 	interface Props {
 		server: RustServer
@@ -57,6 +61,7 @@
 			return // TODO: handle error
 		}
 
+		// TODO: handle error
 		const messages = JSON.parse(response.Message)
 		for (const message of messages) {
 			store.addMessage(message)
@@ -75,11 +80,11 @@
 <div>
 	<div
 		bind:this={consoleContainer}
-		class="flex h-96 flex-col gap-2 overflow-y-scroll font-mono text-xs"
+		class="flex h-96 flex-col gap-2 overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
 	>
-		{#each store.messages as message}
+		{#each store.messages as message, i (i)}
 			<div>
-				<span class="overflow-x-scroll text-nowrap">{message.text}</span>
+				<span>{message.text}</span>
 			</div>
 		{/each}
 	</div>
