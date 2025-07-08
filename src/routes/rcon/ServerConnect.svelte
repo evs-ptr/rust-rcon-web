@@ -12,8 +12,8 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2">
-	<input type="text" bind:value={server.ipPort} />
-	<input type="password" bind:value={server.password} />
-	<button onclick={tryConnect}>Connect</button>
-</div>
+<form onsubmit={tryConnect} class="flex flex-col gap-2">
+	<input type="text" autocomplete="off" bind:value={server.ipPort} />
+	<input type="password" autocomplete="off" bind:value={server.password} />
+	<button type="submit">Connect</button>
+</form>

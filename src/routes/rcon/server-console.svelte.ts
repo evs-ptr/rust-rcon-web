@@ -11,6 +11,10 @@ function createServerConsoleStore(id: number): ServerConsoleStore {
 	return store
 }
 
+export function removeServerConsoleStore(id: number): boolean {
+	return map.delete(id)
+}
+
 export function getServerConsoleStore(id: number): ServerConsoleStore {
 	const store = map.get(id)
 	if (store) {
