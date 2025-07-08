@@ -15,7 +15,6 @@
 	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id))
 
 	let consoleContainer: HTMLDivElement | undefined
-	let shouldScroll: boolean = false
 
 	function calculateShouldScroll() {
 		const SCROLL_THRESHOLD = 16 * 2
@@ -52,7 +51,7 @@
 			return
 		}
 
-		shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
+		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
 		if (shouldScroll) {
 			tick().then(() => {
 				scrollToBottom()
