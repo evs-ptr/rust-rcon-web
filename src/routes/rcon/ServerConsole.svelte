@@ -14,10 +14,10 @@
 	let { server }: Props = $props()
 	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id))
 
-	let consoleContainer: HTMLDivElement | undefined = $state()
+	let consoleContainer: HTMLDivElement | undefined = $state.raw()
 
 	function calculateShouldScroll() {
-		const SCROLL_THRESHOLD = 16 * 2.5
+		const SCROLL_THRESHOLD = 16 * 2
 		if (!consoleContainer) {
 			return false
 		}
@@ -35,6 +35,14 @@
 		consoleContainer.scrollTop = consoleContainer.scrollHeight
 	}
 
+	function handleScroll() {
+		if (!consoleContainer) {
+			return
+		}
+		store.lastScrollTop = consoleContainer.scrollTop
+		store.lastShouldScroll = calculateShouldScroll()
+	}
+
 	$effect.pre(() => {
 		// This is needed to make sure that the effect is triggered on messages change
 		store.messages.length
@@ -48,6 +56,18 @@
 			tick().then(() => {
 				scrollToBottom()
 			})
+		}
+	})
+
+	$effect(() => {
+		if (!consoleContainer) {
+			return
+		}
+
+		if (store.lastShouldScroll) {
+			scrollToBottom()
+		} else {
+			consoleContainer.scrollTop = store.lastScrollTop
 		}
 	})
 
@@ -69,6 +89,7 @@
 <div>
 	<div
 		bind:this={consoleContainer}
+		onscroll={handleScroll}
 		class="flex h-96 flex-col gap-2 overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
 	>
 		{#each store.messages as message, i (i)}

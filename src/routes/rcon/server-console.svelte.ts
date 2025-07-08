@@ -23,6 +23,10 @@ export class ServerConsoleMessage {
 export class ServerConsoleStore {
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
+
+	public lastScrollTop: number = 0
+	public lastShouldScroll: boolean = false
+
 	private isPopulatedConsole: boolean = false
 	private unsubscribe: (() => void) | null = null
 
@@ -51,7 +55,7 @@ export class ServerConsoleStore {
 			return
 		}
 
-		const response = await server.sendCommandGetResponse('console.tail 100')
+		const response = await server.sendCommandGetResponse('console.tail 200')
 		if (!response) {
 			return // TODO: handle error
 		}
