@@ -2,13 +2,14 @@
 	import { onDestroy, onMount } from 'svelte'
 	import type { CommandResponse } from './rust-rcon'
 	import type { RustServer } from './rust-server.svelte'
-	import { serverConsoleStore as store } from './server-console.svelte'
+	import { getServerConsoleStore, type ServerConsoleStore } from './server-console.svelte'
 
 	interface Props {
 		server: RustServer
 	}
 
 	let { server }: Props = $props()
+	const store: ServerConsoleStore = getServerConsoleStore(server.id)
 
 	const SUBSCRIBE_ID = 'cnsle'
 	let unsubscribe: (() => void) | null = null
@@ -59,7 +60,7 @@
 	})
 
 	function handleSubmit() {
-		if (store.commandInput.trim() === '') {
+		if (!store.commandInput.trim()) {
 			return
 		}
 		server.sendCommand(store.commandInput)
@@ -81,12 +82,7 @@
 	<div>
 		<form onsubmit={handleSubmit} class="flex gap-2">
 			<!-- svelte-ignore a11y_autofocus -->
-			<input
-				bind:value={store.commandInput}
-				type="text"
-				class="flex-grow rounded border bg-transparent p-2"
-				autofocus
-			/>
+			<input bind:value={store.commandInput} type="text" class="flex-1" autofocus />
 			<button type="submit">Send</button>
 		</form>
 	</div>

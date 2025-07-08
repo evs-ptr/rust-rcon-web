@@ -15,6 +15,8 @@
 	{#if !server.connectionWasEstablished}
 		<ServerConnect {server} />
 	{:else}
-		<ServerConsole {server} />
+		{#key server.id}
+			<ServerConsole {server} />
+		{/key}
 	{/if}
 </div>
