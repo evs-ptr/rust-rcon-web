@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { CommandResponse } from './rust-rcon'
 	import type { RustServer } from './rust-server.svelte'
 	import {
 		getServerConsoleStore,
@@ -41,32 +40,9 @@
 	})
 
 	$effect(() => {
-		populateConsole()
-
-		const unsubscribe = server.subscribeOnMessage(`console_${server.id}`, onMessage)
-
-		return () => {
-			unsubscribe?.()
-		}
+		store.tryPopulateConsole(server)
+		store.trySubscribeToMessages(server)
 	})
-
-	function onMessage(msg: CommandResponse) {
-		console.log(msg)
-		store.addMessage(msg)
-	}
-
-	async function populateConsole() {
-		const response = await server.sendCommandGetResponse('console.tail 100')
-		if (!response) {
-			return // TODO: handle error
-		}
-
-		// TODO: handle error
-		const messages = JSON.parse(response.Message)
-		for (const message of messages) {
-			store.addMessage(message)
-		}
-	}
 
 	function handleSubmit() {
 		if (!store.commandInput.trim()) {

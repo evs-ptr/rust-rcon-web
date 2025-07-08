@@ -53,6 +53,7 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		const data = event.data as string
 
+		// TODO: handle error
 		const msg = JSON.parse(data) as CommandResponse
 		const resolve = this.messagesMap.get(msg.Identifier)
 		if (resolve) {

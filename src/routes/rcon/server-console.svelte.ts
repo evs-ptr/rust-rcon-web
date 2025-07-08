@@ -1,4 +1,5 @@
 import { LogType, type CommandResponse } from './rust-rcon'
+import type { RustServer } from './rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()
 
@@ -22,6 +23,8 @@ export class ServerConsoleMessage {
 export class ServerConsoleStore {
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
+	private isPopulatedConsole: boolean = false
+	private unsubscribe: (() => void) | null = null
 
 	addMessageRaw(
 		message: string,
@@ -33,14 +36,51 @@ export class ServerConsoleStore {
 		return msg
 	}
 
+	parseMessage(message: CommandResponse) {
+		return new ServerConsoleMessage(message.Message, ServerConsoleMessageType.Console, message.Type)
+	}
+
 	addMessage(message: CommandResponse) {
-		const msg = new ServerConsoleMessage(
-			message.Message,
-			ServerConsoleMessageType.Console,
-			message.Type
-		)
+		const msg = this.parseMessage(message)
 		this.messages.push(msg)
 		return msg
+	}
+
+	async tryPopulateConsole(server: RustServer) {
+		if (this.isPopulatedConsole) {
+			return
+		}
+
+		const response = await server.sendCommandGetResponse('console.tail 100')
+		if (!response) {
+			return // TODO: handle error
+		}
+
+		// TODO: handle error
+		const messages = JSON.parse(response.Message)
+		for (const message of messages) {
+			this.addMessage(message)
+		}
+
+		this.isPopulatedConsole = true
+	}
+
+	onMessage(msg: CommandResponse) {
+		console.log(msg)
+		this.addMessage(msg)
+	}
+
+	trySubscribeToMessages(server: RustServer) {
+		if (this.unsubscribe) {
+			return
+		}
+		this.unsubscribe = server.subscribeOnMessage(`console_${server.id}`, this.onMessage.bind(this))
+	}
+
+	destroy() {
+		this.unsubscribe?.()
+		this.unsubscribe = null
+		this.messages.length = 0
 	}
 }
 
@@ -51,6 +91,10 @@ function createServerConsoleStore(id: number): ServerConsoleStore {
 }
 
 export function removeServerConsoleStore(id: number): boolean {
+	const store = map.get(id)
+	if (store) {
+		store.destroy()
+	}
 	return map.delete(id)
 }
 
