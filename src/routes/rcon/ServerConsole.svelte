@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte'
 	import type { CommandResponse } from './rust-rcon'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerConsoleStore, type ServerConsoleStore } from './server-console.svelte'
@@ -9,14 +8,15 @@
 	}
 
 	let { server }: Props = $props()
-	const store: ServerConsoleStore = getServerConsoleStore(server.id)
-
-	const SUBSCRIBE_ID = 'cnsle'
-	let unsubscribe: (() => void) | null = null
+	let store: ServerConsoleStore = $state(null!)
 
 	let consoleContainer: HTMLDivElement | undefined
 	const SCROLL_THRESHOLD = 16 * 2.5
 	let shouldScroll = false
+
+	$effect.pre(() => {
+		store = getServerConsoleStore(server.id)
+	})
 
 	$effect.pre(() => {
 		// This is needed to make sure that the effect is triggered on messages change
@@ -40,24 +40,19 @@
 		}
 	})
 
+	$effect(() => {
+		const unsubscribe = server.subscribeOnMessage(`console_${server.id}`, onMessage)
+		server.sendCommand('console.tail 1')
+
+		return () => {
+			unsubscribe?.()
+		}
+	})
+
 	function onMessage(msg: CommandResponse) {
 		console.log(msg)
 		store.messages.push(msg.Message)
 	}
-
-	onMount(() => {
-		unsubscribe?.()
-		unsubscribe = server.subscribeOnMessage(SUBSCRIBE_ID, onMessage)
-		server.sendCommand('console.tail 100')
-		server.sendCommand('console.tail 100')
-		server.sendCommand('console.tail 100')
-		server.sendCommand('console.tail 100')
-		server.sendCommand('c.help')
-	})
-
-	onDestroy(() => {
-		unsubscribe?.()
-	})
 
 	function handleSubmit() {
 		if (!store.commandInput.trim()) {
