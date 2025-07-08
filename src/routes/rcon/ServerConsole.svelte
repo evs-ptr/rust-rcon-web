@@ -73,6 +73,7 @@
 			return
 		}
 		server.sendCommand(store.commandInput)
+		store.addMessageRaw(store.commandInput, ServerConsoleMessageType.UserCommand)
 		store.commandInput = ''
 	}
 </script>
