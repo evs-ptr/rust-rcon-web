@@ -41,8 +41,9 @@
 	})
 
 	$effect(() => {
+		populateConsole()
+
 		const unsubscribe = server.subscribeOnMessage(`console_${server.id}`, onMessage)
-		server.sendCommand('console.tail 1')
 
 		return () => {
 			unsubscribe?.()
@@ -51,7 +52,19 @@
 
 	function onMessage(msg: CommandResponse) {
 		console.log(msg)
-		store.messages.push(msg.Message)
+		store.addMessage(msg)
+	}
+
+	async function populateConsole() {
+		const response = await server.sendCommandGetResponse('console.tail 100')
+		if (!response) {
+			return // TODO: handle error
+		}
+
+		const messages = JSON.parse(response.Message)
+		for (const message of messages) {
+			store.addMessage(message)
+		}
 	}
 
 	function handleSubmit() {
@@ -70,7 +83,7 @@
 	>
 		{#each store.messages as message}
 			<div>
-				<span class="overflow-x-scroll text-nowrap">{message}</span>
+				<span class="overflow-x-scroll text-nowrap">{message.text}</span>
 			</div>
 		{/each}
 	</div>

@@ -11,7 +11,7 @@ export interface CommandResponse {
 	Stacktrace: string
 }
 
-enum LogType {
+export enum LogType {
 	Generic = 0,
 	Error = 1,
 	Warning = 2,
