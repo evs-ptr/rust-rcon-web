@@ -5,40 +5,17 @@
 	let { children } = $props()
 </script>
 
-<div class="app">
+<div class="flex min-h-screen flex-col">
 	<Header />
 
-	<main>
+	<main class="container mx-auto flex flex-1 flex-col overflow-clip px-4 sm:px-8 lg:px-20">
 		{@render children()}
 	</main>
 
-	<footer>
+	<footer class="flex flex-col items-center justify-center py-4">
 		<p>footer</p>
 	</footer>
 </div>
 
 <style>
-	.app {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-	}
-
-	main {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		width: 100%;
-		max-width: 64rem;
-		margin: 0 auto;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 12px;
-	}
 </style>
