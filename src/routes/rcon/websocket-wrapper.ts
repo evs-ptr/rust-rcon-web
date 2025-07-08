@@ -149,7 +149,7 @@ export class WebSocketWrapper {
 	}
 
 	onClose(event: CloseEvent) {
-		console.log(`WebSocket closed: ${event.code} - ${event.reason}`)
+		console.log(`WebSocket closed (${this.url}): ${event.code} - ${event.reason}`)
 		this.resetState()
 
 		// Don't reconnect if it was a normal closure
