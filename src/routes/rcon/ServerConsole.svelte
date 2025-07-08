@@ -14,7 +14,8 @@
 	let { server }: Props = $props()
 	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id))
 
-	let consoleContainer: HTMLDivElement | undefined = $state.raw()
+	let consoleContainer: HTMLDivElement | undefined
+	let shouldScroll: boolean = false
 
 	function calculateShouldScroll() {
 		const SCROLL_THRESHOLD = 16 * 2
@@ -51,7 +52,8 @@
 			return
 		}
 
-		const shouldScroll = calculateShouldScroll()
+		shouldScroll =
+			calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
 		if (shouldScroll) {
 			tick().then(() => {
 				scrollToBottom()
@@ -66,7 +68,7 @@
 
 		if (store.lastShouldScroll) {
 			scrollToBottom()
-		} else {
+		} else if (store.lastScrollTop != null) {
 			consoleContainer.scrollTop = store.lastScrollTop
 		}
 	})

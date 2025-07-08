@@ -121,7 +121,7 @@ export class RustRconConnection extends WebSocketWrapper {
 	sendCommand(command: string) {
 		const msg = this.constructMessage(command, MSG_ID_REG_COMMAND)
 		const serialized = JSON.stringify(msg)
-		console.log('sendCommand', serialized)
+		// console.log('sendCommand', serialized)
 		return this.send(serialized)
 	}
 }

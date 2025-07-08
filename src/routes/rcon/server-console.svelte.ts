@@ -24,8 +24,8 @@ export class ServerConsoleStore {
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
 
-	public lastScrollTop: number = 0
-	public lastShouldScroll: boolean = false
+	public lastScrollTop: number | null = null
+	public lastShouldScroll: boolean | null = null
 
 	private isPopulatedConsole: boolean = false
 	private unsubscribe: (() => void) | null = null
@@ -70,7 +70,7 @@ export class ServerConsoleStore {
 	}
 
 	onMessage(msg: CommandResponse) {
-		console.log(msg)
+		// console.log(msg)
 		this.addMessage(msg)
 	}
 
