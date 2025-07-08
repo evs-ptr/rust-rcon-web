@@ -36,6 +36,8 @@ export class RustRconConnection extends WebSocketWrapper {
 	>()
 	private readonly messageTimeOut = 6_000
 
+	private readonly subscriptions: Map<string, (msg: CommandResponse) => void> = new Map()
+
 	constructor(url: string) {
 		super(url)
 	}
@@ -57,7 +59,13 @@ export class RustRconConnection extends WebSocketWrapper {
 			resolve(msg)
 			return
 		}
-		console.log('onMessage', msg)
+
+		this.subscriptions.forEach((onMessage) => onMessage(msg))
+	}
+
+	subscribeOnMessage(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
+		this.subscriptions.set(subscribeId, onMessage)
+		return () => this.subscriptions.delete(subscribeId)
 	}
 
 	private takeNextMsgId(): number {

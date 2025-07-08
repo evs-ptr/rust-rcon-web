@@ -1,4 +1,4 @@
-import { RustRconConnection } from './rust-rcon'
+import { RustRconConnection, type CommandResponse } from './rust-rcon'
 
 export class RustServer {
 	private static idCounter = 0
@@ -46,5 +46,26 @@ export class RustServer {
 		this.connectionWasEstablished = true
 
 		return true
+	}
+
+	subscribeOnMessage(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
+		if (!this.rcon || !this.connectionWasEstablished) {
+			return () => {}
+		}
+		return this.rcon.subscribeOnMessage(subscribeId, onMessage)
+	}
+
+	sendCommand(command: string) {
+		if (!this.rcon || !this.connectionWasEstablished) {
+			return
+		}
+		return this.rcon.sendCommand(command)
+	}
+
+	async sendCommandGetResponse(command: string) {
+		if (!this.rcon || !this.connectionWasEstablished) {
+			return
+		}
+		return this.rcon.sendCommandGetResponse(command)
 	}
 }
