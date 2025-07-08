@@ -8,15 +8,11 @@
 	}
 
 	let { server }: Props = $props()
-	let store: ServerConsoleStore = $state(null!)
+	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id))
 
 	let consoleContainer: HTMLDivElement | undefined
 	const SCROLL_THRESHOLD = 16 * 2.5
 	let shouldScroll = false
-
-	$effect.pre(() => {
-		store = getServerConsoleStore(server.id)
-	})
 
 	$effect.pre(() => {
 		// This is needed to make sure that the effect is triggered on messages change
