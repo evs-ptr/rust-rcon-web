@@ -6,14 +6,18 @@ const map = new Map<number, ServerConsoleStore>()
 export enum ServerConsoleMessageType {
 	Console = 0,
 	UserCommand = 1,
+	System = 2,
 }
 
 export class ServerConsoleMessage {
 	private static idCounter = 0
 	public readonly id: number
+
 	public readonly text: string
 	public readonly type: ServerConsoleMessageType
 	public readonly logType: LogType
+
+	public response: ServerConsoleMessage | null = $state.raw(null)
 
 	constructor(message: string, type: ServerConsoleMessageType, consoleType: LogType) {
 		this.id = ServerConsoleMessage.idCounter++

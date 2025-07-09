@@ -44,20 +44,25 @@
 		store.lastShouldScroll = calculateShouldScroll()
 	}
 
-	$effect.pre(() => {
-		// This is needed to make sure that the effect is triggered on messages change
-		store.messages.length
-
-		if (!consoleContainer) {
-			return
-		}
-
+	function scrollToBottomIfNeeded() {
 		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
 		if (shouldScroll) {
 			tick().then(() => {
 				scrollToBottom()
 			})
 		}
+	}
+
+	$effect.pre(() => {
+		// This is needed to make sure that the effect is triggered on messages change
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		store.messages.length
+
+		if (!consoleContainer) {
+			return
+		}
+
+		scrollToBottomIfNeeded()
 	})
 
 	$effect(() => {
@@ -84,12 +89,15 @@
 
 		const command = store.commandInput
 
-		store.addMessageRaw(command, ServerConsoleMessageType.UserCommand)
+		const userCommand = store.addMessageRaw(command, ServerConsoleMessageType.UserCommand)
+
 		server
 			.sendCommandGetResponse(command)
 			.then((response) => {
 				if (response) {
-					store.addMessage(response)
+					const msg = store.parseMessage(response)
+					userCommand.response = msg
+					scrollToBottomIfNeeded()
 				}
 			})
 			.catch(() => {
@@ -125,4 +133,9 @@
 	<div>
 		<span>{message.text}</span>
 	</div>
+	{#if message.response}
+		<div class="text-gray-600">
+			<span>{message.response.text}</span>
+		</div>
+	{/if}
 {/snippet}
