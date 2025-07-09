@@ -14,12 +14,13 @@ Packages:
 - vitest (v3.2.4)
 - typescript (v5.8.3)
 
-Basic rules:
+Basic rules for writing CODE:
 
 - ALWAYS use typescript, in .svelte files and other. No javascript at all.
 - Avoid using clousers (anon functions) prefer creating functions:
   - BAD: `const foo = () => {}`
   - GOOD: `function foo() {}`
+  - GOOD: `foo(() => {...})`
 - Avoid using if-statements without brackets:
   - BAD: `if (flag) return`
   - GOOD:
@@ -37,4 +38,4 @@ Basic rules:
 - CSS
   - Prefer using Tailwindcss (v4) instead of writing css classes/inlined css, unless usage of tailwind in current context will lead to abnormous class="..." size, then using css can be considered as allowed.
 - Comments
-  - DO NOT write comments unless specified by user.
+  - DO NOT write useless code comments.

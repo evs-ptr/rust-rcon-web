@@ -19,13 +19,17 @@ export class WebSocketWrapper {
 		this.url = url
 	}
 
-	async connect(): Promise<unknown> {
+	connect(): Promise<unknown> {
 		if (this.connectPromise) {
 			return this.connectPromise
 		}
 
 		if (this.isConnected) {
-			return Promise.resolve()
+			// If we are already connected, we can consider the "connection" process
+			// successful. We should return the original promise if it exists,
+			// to allow for consistent `await` behavior for callers who might have
+			// missed the initial connection.
+			return this.connectPromise ?? Promise.resolve()
 		}
 
 		const promise1 = new Promise((resolve, reject) => {
@@ -140,7 +144,8 @@ export class WebSocketWrapper {
 	}
 
 	onError(event: Event) {
-		const error = event instanceof ErrorEvent ? event.error : event
+		// In non-browser environments (like vitest in node), ErrorEvent may not be defined.
+		const error = typeof ErrorEvent !== 'undefined' && event instanceof ErrorEvent ? event.error : event
 		console.error('WebSocket error:', error)
 		this.connectReject?.(error as Error)
 	}
