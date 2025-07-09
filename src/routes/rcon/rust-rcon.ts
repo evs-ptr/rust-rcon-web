@@ -55,19 +55,22 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		const data = event.data as string
 
-		// TODO: handle error
-		const msg = JSON.parse(data) as CommandResponse
-		const resolve = this.messagesMap.get(msg.Identifier)
-		if (resolve) {
-			this.messagesMap.delete(msg.Identifier)
-			resolve(msg)
-			return
-		}
+		try {
+			const msg = JSON.parse(data) as CommandResponse
+			const resolve = this.messagesMap.get(msg.Identifier)
+			if (resolve) {
+				this.messagesMap.delete(msg.Identifier)
+				resolve(msg)
+				return
+			}
 
-		if (msg.Identifier === 0) {
-			this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
-		} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
-			this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
+			if (msg.Identifier === 0) {
+				this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
+			} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
+				this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
+			}
+		} catch (error) {
+			console.error('Failed to parse message:', error)
 		}
 	}
 
