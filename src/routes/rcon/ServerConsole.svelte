@@ -86,19 +86,21 @@
 	}
 </script>
 
-<div>
+<div class="flex flex-col gap-2">
 	<div
 		bind:this={consoleContainer}
 		onscroll={handleScroll}
-		class="flex h-[70vh] resize-y flex-col gap-2 overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
+		class="flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
 	>
-		{#each store.messages as message (message.id)}
-			<div>
-				<span>{message.text}</span>
-			</div>
-		{/each}
+		<div class="mt-auto py-4">
+			{#each store.messages as message (message.id)}
+				<div>
+					<span>{message.text}</span>
+				</div>
+			{/each}
+		</div>
 	</div>
-	<div class="mt-2">
+	<div>
 		<form onsubmit={handleSubmit} class="flex gap-2">
 			<!-- svelte-ignore a11y_autofocus -->
 			<input bind:value={store.commandInput} type="text" class="flex-1" autofocus />
