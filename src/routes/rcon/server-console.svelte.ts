@@ -32,7 +32,7 @@ export class ServerConsoleStore {
 	public lastShouldScroll: boolean | null = null
 
 	private isPopulatedConsole: boolean = false
-	private unsubscribe: (() => void) | null = null
+	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
 		const msg = new ServerConsoleMessage(message, type, consoleType)
@@ -69,21 +69,24 @@ export class ServerConsoleStore {
 		this.isPopulatedConsole = true
 	}
 
-	onMessage(msg: CommandResponse) {
+	onMessageGeneral(msg: CommandResponse) {
 		// console.log(msg)
 		this.addMessage(msg)
 	}
 
-	trySubscribeToMessages(server: RustServer) {
-		if (this.unsubscribe) {
+	trySubscribeToMessagesGeneral(server: RustServer) {
+		if (this.unsubscribeOnMessagesGeneral) {
 			return
 		}
-		this.unsubscribe = server.subscribeOnMessage(`console_${server.id}`, this.onMessage.bind(this))
+		this.unsubscribeOnMessagesGeneral = server.subscribeOnMessageGeneral(
+			`console_${server.id}`,
+			this.onMessageGeneral.bind(this)
+		)
 	}
 
 	destroy() {
-		this.unsubscribe?.()
-		this.unsubscribe = null
+		this.unsubscribeOnMessagesGeneral?.()
+		this.unsubscribeOnMessagesGeneral = null
 		this.messages.length = 0
 	}
 }

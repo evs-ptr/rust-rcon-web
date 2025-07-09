@@ -74,15 +74,28 @@
 
 	$effect(() => {
 		store.tryPopulateConsole(server)
-		store.trySubscribeToMessages(server)
+		store.trySubscribeToMessagesGeneral(server)
 	})
 
 	function handleSubmit() {
 		if (!store.commandInput.trim()) {
 			return
 		}
-		server.sendCommand(store.commandInput)
-		store.addMessageRaw(store.commandInput, ServerConsoleMessageType.UserCommand)
+
+		const command = store.commandInput
+
+		store.addMessageRaw(command, ServerConsoleMessageType.UserCommand)
+		server
+			.sendCommandGetResponse(command)
+			.then((response) => {
+				if (response) {
+					store.addMessage(response)
+				}
+			})
+			.catch(() => {
+				// ignore
+			})
+
 		store.commandInput = ''
 	}
 </script>

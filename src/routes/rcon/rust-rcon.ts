@@ -36,7 +36,8 @@ export class RustRconConnection extends WebSocketWrapper {
 	>()
 	private readonly messageTimeOut = 6_000
 
-	private readonly subscriptions: Map<string, (msg: CommandResponse) => void> = new Map()
+	private readonly subscriptionsOnMessageGeneral: Map<string, (msg: CommandResponse) => void> = new Map()
+	private readonly subscriptionsOnMessageCommand: Map<string, (msg: CommandResponse) => void> = new Map()
 
 	constructor(url: string) {
 		super(url)
@@ -45,7 +46,8 @@ export class RustRconConnection extends WebSocketWrapper {
 	disconnect() {
 		super.disconnect()
 		this.messagesMap.clear()
-		this.subscriptions.clear()
+		this.subscriptionsOnMessageGeneral.clear()
+		this.subscriptionsOnMessageCommand.clear()
 	}
 
 	onMessage(event: MessageEvent) {
@@ -62,12 +64,21 @@ export class RustRconConnection extends WebSocketWrapper {
 			return
 		}
 
-		this.subscriptions.forEach((onMessage) => onMessage(msg))
+		if (msg.Identifier === 0) {
+			this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
+		} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
+			this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
+		}
 	}
 
-	subscribeOnMessage(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
-		this.subscriptions.set(subscribeId, onMessage)
-		return () => this.subscriptions.delete(subscribeId)
+	subscribeOnMessageGeneral(subscribeId: string, onMessageGeneral: (msg: CommandResponse) => void) {
+		this.subscriptionsOnMessageGeneral.set(subscribeId, onMessageGeneral)
+		return () => this.subscriptionsOnMessageGeneral.delete(subscribeId)
+	}
+
+	subscribeOnMessageCommand(subscribeId: string, onMessageCommand: (msg: CommandResponse) => void) {
+		this.subscriptionsOnMessageCommand.set(subscribeId, onMessageCommand)
+		return () => this.subscriptionsOnMessageCommand.delete(subscribeId)
 	}
 
 	private takeNextMsgId(): number {

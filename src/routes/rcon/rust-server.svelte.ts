@@ -48,11 +48,11 @@ export class RustServer {
 		return true
 	}
 
-	subscribeOnMessage(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
+	subscribeOnMessageGeneral(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
 		if (!this.rcon || !this.connectionWasEstablished) {
 			return () => {}
 		}
-		return this.rcon.subscribeOnMessage(subscribeId, onMessage)
+		return this.rcon.subscribeOnMessageGeneral(subscribeId, onMessage)
 	}
 
 	sendCommand(command: string) {
