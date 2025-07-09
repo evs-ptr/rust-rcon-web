@@ -12,6 +12,10 @@
 	font-family: var(--font-body);
 }
 
+.font-mono {
+	font-variant-ligatures: none;
+}
+
 /* body {
 	background-attachment: fixed;
 	background-color: var(--color-bg-1);
