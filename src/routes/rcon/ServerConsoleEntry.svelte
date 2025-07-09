@@ -17,20 +17,20 @@
 		return text.trim()
 	}
 
-	function getLogTypeClasses(logType: LogType): string {
+	function getLogTypeClasses(logType: LogType): string[] {
 		switch (logType) {
 			case LogType.Error:
-				return 'text-red-500'
+				return ['pl-2', 'border-l-1', 'border-red-500/70', 'text-red-400']
 			case LogType.Warning:
-				return 'text-yellow-500'
+				return ['pl-2', 'border-l-1', 'border-yellow-500/70', 'text-yellow-500']
 			default:
-				return ''
+				return ['pl-2', 'border-l-1', 'border-transparent']
 		}
 	}
 </script>
 
 <div>
-	<div class="flex gap-4">
+	<div class="flex gap-2">
 		<span class="text-blue-600">{formattedDate}</span>
 		{@render logText(message)}
 	</div>
@@ -44,7 +44,7 @@
 </div>
 
 {#snippet logText(message: ServerConsoleMessage)}
-	<span class={['whitespace-pre', getLogTypeClasses(message.logType)]}>
+	<span class={['whitespace-pre', ...getLogTypeClasses(message.logType)]}>
 		{prepareText(message.text)}
 	</span>
 {/snippet}
