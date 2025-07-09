@@ -3,10 +3,10 @@
 	import type { RustServer } from './rust-server.svelte'
 	import {
 		getServerConsoleStore,
-		ServerConsoleMessage,
 		ServerConsoleMessageType,
 		type ServerConsoleStore,
 	} from './server-console.svelte'
+	import ServerConsoleEntry from './ServerConsoleEntry.svelte'
 
 	interface Props {
 		server: RustServer
@@ -117,7 +117,7 @@
 	>
 		<div class="mt-auto flex flex-col gap-0.5 py-4">
 			{#each store.messages as message (message.id)}
-				{@render consoleMessage(message)}
+				<ServerConsoleEntry {message} />
 			{/each}
 		</div>
 	</div>
@@ -129,29 +129,3 @@
 		</form>
 	</div>
 </div>
-
-{#snippet consoleMessage(message: ServerConsoleMessage)}
-	{@const formattedDate =
-		`${message.timestamp.getHours().toString().padStart(2, '0')}` +
-		`:${message.timestamp.getMinutes().toString().padStart(2, '0')}` +
-		`:${message.timestamp.getSeconds().toString().padStart(2, '0')}`}
-	{@const splitted = message.text.split('\n')}
-	<div>
-		<div class="flex gap-4">
-			<span class="text-blue-600">{formattedDate}</span>
-			<div class="flex flex-col">
-				{#each splitted as line, i (i)}
-					<span>{line}</span>
-				{/each}
-			</div>
-		</div>
-		{#if message.response}
-			{@const splitted = message.response.text.split('\n')}
-			<div class="flex flex-col text-gray-600">
-				{#each splitted as line, i (i)}
-					<span>{line}</span>
-				{/each}
-			</div>
-		{/if}
-	</div>
-{/snippet}
