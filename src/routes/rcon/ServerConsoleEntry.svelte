@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { LogType } from './rust-rcon'
 	import type { ServerConsoleMessage } from './server-console.svelte'
 
 	interface Props {
@@ -20,15 +21,29 @@
 <div>
 	<div class="flex gap-4">
 		<span class="text-blue-600">{formattedDate}</span>
-		<div class="flex flex-col">
-			<span class="whitespace-pre">{prepareText(message.text)}</span>
-		</div>
+		<span
+			class="whitespace-pre"
+			class:text-red-500={message.logType == LogType.Error}
+			class:text-yellow-500={message.logType == LogType.Warning}
+		>
+			{prepareText(message.text)}
+		</span>
 	</div>
 	{#if message.responses}
 		<div class="flex flex-col text-gray-600">
 			{#each message.responses as response, i (i)}
-				<span class="whitespace-pre">{prepareText(response.text)}</span>
+				{@render responseSnippet(response)}
 			{/each}
 		</div>
 	{/if}
 </div>
+
+{#snippet responseSnippet(response: ServerConsoleMessage)}
+	<span
+		class="whitespace-pre"
+		class:text-red-500={response.logType == LogType.Error}
+		class:text-yellow-500={response.logType == LogType.Warning}
+	>
+		{prepareText(response.text)}
+	</span>
+{/snippet}

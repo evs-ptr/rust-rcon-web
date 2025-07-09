@@ -12,13 +12,13 @@ export interface CommandResponse {
 }
 
 export enum LogType {
-	Generic = 0,
-	Error = 1,
-	Warning = 2,
-	Chat = 3,
-	Report = 4,
-	ClientPerf = 5,
-	Subscription = 6,
+	Generic = 'Generic',
+	Error = 'Error',
+	Warning = 'Warning',
+	Chat = 'Chat',
+	Report = 'Report',
+	ClientPerf = 'ClientPerf',
+	Subscription = 'Subscription',
 }
 
 const MAX_INT_32 = 2_147_483_647
@@ -60,6 +60,8 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		try {
 			const msg = JSON.parse(data) as CommandResponse
+
+			console.log(msg)
 
 			const resolve = this.messagesMap.get(msg.Identifier)
 			if (resolve) {

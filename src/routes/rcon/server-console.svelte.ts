@@ -75,13 +75,16 @@ export class ServerConsoleStore {
 			return // TODO: handle error
 		}
 
-		// TODO: handle error
-		const messages = JSON.parse(response.Message)
-		for (const message of messages) {
-			this.addMessage(message)
-		}
+		try {
+			const messages = JSON.parse(response.Message) as CommandResponse[]
+			for (const message of messages) {
+				this.addMessage(message)
+			}
 
-		this.isPopulatedConsole = true
+			this.isPopulatedConsole = true
+		} catch (error) {
+			console.error(error)
+		}
 	}
 
 	onMessageGeneral(msg: CommandResponse) {
