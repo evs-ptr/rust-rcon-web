@@ -90,7 +90,7 @@
 	<div
 		bind:this={consoleContainer}
 		onscroll={handleScroll}
-		class="flex h-96 flex-col gap-2 overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
+		class="flex h-[70vh] resize-y flex-col gap-2 overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
 	>
 		{#each store.messages as message (message.id)}
 			<div>
@@ -98,7 +98,7 @@
 			</div>
 		{/each}
 	</div>
-	<div>
+	<div class="mt-2">
 		<form onsubmit={handleSubmit} class="flex gap-2">
 			<!-- svelte-ignore a11y_autofocus -->
 			<input bind:value={store.commandInput} type="text" class="flex-1" autofocus />
