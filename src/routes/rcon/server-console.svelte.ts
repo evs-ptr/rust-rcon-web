@@ -9,11 +9,14 @@ export enum ServerConsoleMessageType {
 }
 
 export class ServerConsoleMessage {
+	private static idCounter = 0
+	public readonly id: number
 	public readonly text: string
 	public readonly type: ServerConsoleMessageType
 	public readonly logType: LogType
 
 	constructor(message: string, type: ServerConsoleMessageType, consoleType: LogType) {
+		this.id = ServerConsoleMessage.idCounter++
 		this.text = message
 		this.type = type
 		this.logType = consoleType
@@ -21,6 +24,7 @@ export class ServerConsoleMessage {
 }
 
 export class ServerConsoleStore {
+	// TODO: make it NOT deep
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
 

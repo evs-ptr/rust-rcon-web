@@ -92,7 +92,7 @@
 		onscroll={handleScroll}
 		class="flex h-96 flex-col gap-2 overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
 	>
-		{#each store.messages as message, i (i)}
+		{#each store.messages as message (message.id)}
 			<div>
 				<span>{message.text}</span>
 			</div>
