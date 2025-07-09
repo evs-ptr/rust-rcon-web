@@ -60,7 +60,13 @@ export class ServerConsoleStore {
 		)
 	}
 
-	addMessage(message: CommandResponse) {
+	addMessage(message: CommandResponse): ServerConsoleMessage {
+		const msg = this.parseMessage(message)
+		this.messages.push(msg)
+		return msg
+	}
+
+	addChatMessage(message: CommandResponse): ServerConsoleMessage {
 		const msg = this.parseMessage(message)
 		this.messages.push(msg)
 		return msg
@@ -77,7 +83,15 @@ export class ServerConsoleStore {
 		}
 
 		try {
-			const messages = JSON.parse(response.Message) as CommandResponse[]
+			//  {
+			//     "Message": "Saved 640 ents, cache(0.00), write(0.00), disk(0.01).",
+			//     "Stacktrace": "",
+			//     "Type": "Log",
+			//     "Time": 1752068442
+			//   },
+
+			// TODO: to ConsoleHistoryEntry
+			const messages = JSON.parse(response.Message)
 			for (const message of messages) {
 				this.addMessage(message)
 			}
@@ -86,6 +100,8 @@ export class ServerConsoleStore {
 		} catch (error) {
 			console.error(error)
 		}
+
+		// TODO: get chat too, sort by time, only then add
 	}
 
 	onMessageGeneral(msg: CommandResponse) {
@@ -94,8 +110,15 @@ export class ServerConsoleStore {
 	}
 
 	onMessagePlayerRelated(msg: CommandResponse) {
-		// console.log(msg)
-		this.addMessage(msg)
+		console.log('onMessagePlayerRelated', msg)
+		switch (msg.Type) {
+			case LogType.Chat:
+				this.addChatMessage(msg)
+				break
+			default:
+				this.addMessage(msg)
+				break
+		}
 	}
 
 	trySubscribeToMessagesGeneral(server: RustServer) {

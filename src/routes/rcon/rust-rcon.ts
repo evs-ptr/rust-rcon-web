@@ -44,8 +44,6 @@ export class RustRconConnection extends WebSocketWrapper {
 		try {
 			const msg = JSON.parse(data) as CommandResponse
 
-			console.log(msg)
-
 			const resolve = this.messagesMap.get(msg.Identifier)
 			if (resolve) {
 				this.messagesMap.delete(msg.Identifier)
@@ -66,6 +64,8 @@ export class RustRconConnection extends WebSocketWrapper {
 			} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
 				this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
 			}
+
+			console.log('unknown message', msg)
 		} catch (error) {
 			console.error('Failed to parse message:', error)
 		}
