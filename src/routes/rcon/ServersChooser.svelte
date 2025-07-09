@@ -11,6 +11,7 @@
 	function addBlankServer() {
 		const newServer = serversManager.addServer()
 		newServer.ipPort = '127.0.0.1:'
+		switchServer(newServer)
 	}
 
 	function switchServer(server: RustServer) {
@@ -28,5 +29,5 @@
 			<!-- TODO: delete button -->
 		</button>
 	{/each}
-	<button onclick={addBlankServer}> Add Server </button>
+	<button onclick={addBlankServer}>Add Server</button>
 </div>
