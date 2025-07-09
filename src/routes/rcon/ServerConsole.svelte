@@ -3,6 +3,7 @@
 	import type { RustServer } from './rust-server.svelte'
 	import {
 		getServerConsoleStore,
+		ServerConsoleMessage,
 		ServerConsoleMessageType,
 		type ServerConsoleStore,
 	} from './server-console.svelte'
@@ -94,9 +95,7 @@
 	>
 		<div class="mt-auto py-4">
 			{#each store.messages as message (message.id)}
-				<div>
-					<span>{message.text}</span>
-				</div>
+				{@render consoleMessage(message)}
 			{/each}
 		</div>
 	</div>
@@ -108,3 +107,9 @@
 		</form>
 	</div>
 </div>
+
+{#snippet consoleMessage(message: ServerConsoleMessage)}
+	<div>
+		<span>{message.text}</span>
+	</div>
+{/snippet}
