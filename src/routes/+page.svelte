@@ -3,10 +3,14 @@
 
 <svelte:head>
 	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
+	<meta name="description" content="Rust RCON Web" />
 </svelte:head>
 
-<h1>SDf</h1>
+<div class="[&>h1]:text-2xl [&>h1]:font-bold">
+	<h1>Rust RCON Web</h1>
+	<p>Look at the header.</p>
+	<p>...</p>
+</div>
 
 <style>
 </style>
