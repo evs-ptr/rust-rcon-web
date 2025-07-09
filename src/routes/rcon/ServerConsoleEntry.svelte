@@ -20,9 +20,25 @@
 	function getLogTypeClasses(logType: LogType): string[] {
 		switch (logType) {
 			case LogType.Error:
-				return ['pl-2', 'border-l-1', 'border-red-500/70', 'text-red-400']
+				return [
+					'pl-2',
+					'border-l-2',
+					'border-red-500',
+					'text-red-500',
+					'bg-red-500/5',
+					'rounded-r',
+					'font-medium',
+				]
 			case LogType.Warning:
-				return ['pl-2', 'border-l-1', 'border-yellow-500/70', 'text-yellow-500']
+				return [
+					'pl-2',
+					'border-l-2',
+					'border-yellow-500',
+					'text-yellow-500',
+					'bg-yellow-500/5',
+					'rounded-r',
+					'font-medium',
+				]
 			default:
 				return ['pl-2', 'border-l-1', 'border-transparent']
 		}
