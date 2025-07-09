@@ -17,13 +17,16 @@ export class ServerConsoleMessage {
 	public readonly type: ServerConsoleMessageType
 	public readonly logType: LogType
 
+	public readonly timestamp: Date
+
 	public response: ServerConsoleMessage | null = $state.raw(null)
 
-	constructor(message: string, type: ServerConsoleMessageType, consoleType: LogType) {
+	constructor(message: string, type: ServerConsoleMessageType, consoleType: LogType, timestamp: Date) {
 		this.id = ServerConsoleMessage.idCounter++
 		this.text = message
 		this.type = type
 		this.logType = consoleType
+		this.timestamp = timestamp
 	}
 }
 
@@ -39,13 +42,21 @@ export class ServerConsoleStore {
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
-		const msg = new ServerConsoleMessage(message, type, consoleType)
+		const timestamp = new Date()
+		const msg = new ServerConsoleMessage(message, type, consoleType, timestamp)
 		this.messages.push(msg)
 		return msg
 	}
 
 	parseMessage(message: CommandResponse) {
-		return new ServerConsoleMessage(message.Message, ServerConsoleMessageType.Console, message.Type)
+		// as we don't have this info in CommandResponse
+		const timestamp = new Date()
+		return new ServerConsoleMessage(
+			message.Message,
+			ServerConsoleMessageType.Console,
+			message.Type,
+			timestamp
+		)
 	}
 
 	addMessage(message: CommandResponse) {

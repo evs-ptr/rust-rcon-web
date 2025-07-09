@@ -131,8 +131,15 @@
 </div>
 
 {#snippet consoleMessage(message: ServerConsoleMessage)}
+	{@const formattedDate =
+		`${message.timestamp.getHours().toString().padStart(2, '0')}` +
+		`:${message.timestamp.getMinutes().toString().padStart(2, '0')}` +
+		`:${message.timestamp.getSeconds().toString().padStart(2, '0')}`}
 	<div>
-		<span>{message.text}</span>
+		<div class="flex gap-4">
+			<span class="text-blue-600">{formattedDate}</span>
+			<span>{message.text}</span>
+		</div>
 		{#if message.response}
 			{@const splitted = message.response.text.split('\n')}
 			<div class="flex flex-col text-gray-600">
