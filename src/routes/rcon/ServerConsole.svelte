@@ -97,6 +97,7 @@
 				if (response) {
 					const msg = store.parseMessage(response)
 					userCommand.response = msg
+					console.log(msg)
 					scrollToBottomIfNeeded()
 				}
 			})
@@ -132,10 +133,13 @@
 {#snippet consoleMessage(message: ServerConsoleMessage)}
 	<div>
 		<span>{message.text}</span>
+		{#if message.response}
+			{@const splitted = message.response.text.split('\n')}
+			<div class="flex flex-col text-gray-600">
+				{#each splitted as line, i (i)}
+					<span>{line}</span>
+				{/each}
+			</div>
+		{/if}
 	</div>
-	{#if message.response}
-		<div class="text-gray-600">
-			<span>{message.response.text}</span>
-		</div>
-	{/if}
 {/snippet}
