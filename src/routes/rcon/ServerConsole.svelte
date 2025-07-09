@@ -80,6 +80,7 @@
 	$effect(() => {
 		store.tryPopulateConsole(server)
 		store.trySubscribeToMessagesGeneral(server)
+		store.trySubscribeToMessagesPlayerRelated(server)
 	})
 
 	function handleSubmit() {

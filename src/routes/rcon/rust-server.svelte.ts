@@ -55,6 +55,13 @@ export class RustServer {
 		return this.rcon.subscribeOnMessageGeneral(subscribeId, onMessage)
 	}
 
+	subscribeOnMessagePlayerRelated(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
+		if (!this.rcon || !this.connectionWasEstablished) {
+			return () => {}
+		}
+		return this.rcon.subscribeOnMessagePlayerRelated(subscribeId, onMessage)
+	}
+
 	async sendCommandGetResponse(command: string) {
 		if (!this.rcon || !this.connectionWasEstablished) {
 			return

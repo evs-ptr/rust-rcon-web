@@ -40,6 +40,8 @@ export class RustRconConnection extends WebSocketWrapper {
 	private readonly messagesMapMany = new Map<number, (msg: CommandResponse) => void>()
 
 	private readonly subscriptionsOnMessageGeneral: Map<string, (msg: CommandResponse) => void> = new Map()
+	private readonly subscriptionsOnMessagePlayerRelated: Map<string, (msg: CommandResponse) => void> =
+		new Map()
 	private readonly subscriptionsOnMessageCommand: Map<string, (msg: CommandResponse) => void> = new Map()
 
 	constructor(url: string) {
@@ -51,6 +53,7 @@ export class RustRconConnection extends WebSocketWrapper {
 		this.messagesMap.clear()
 		this.messagesMapMany.clear()
 		this.subscriptionsOnMessageGeneral.clear()
+		this.subscriptionsOnMessagePlayerRelated.clear()
 		this.subscriptionsOnMessageCommand.clear()
 	}
 
@@ -79,6 +82,8 @@ export class RustRconConnection extends WebSocketWrapper {
 
 			if (msg.Identifier === 0) {
 				this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
+			} else if (msg.Identifier === -1) {
+				this.subscriptionsOnMessagePlayerRelated.forEach((onMessage) => onMessage(msg))
 			} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
 				this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
 			}
@@ -90,6 +95,14 @@ export class RustRconConnection extends WebSocketWrapper {
 	subscribeOnMessageGeneral(subscribeId: string, onMessageGeneral: (msg: CommandResponse) => void) {
 		this.subscriptionsOnMessageGeneral.set(subscribeId, onMessageGeneral)
 		return () => this.subscriptionsOnMessageGeneral.delete(subscribeId)
+	}
+
+	subscribeOnMessagePlayerRelated(
+		subscribeId: string,
+		onMessagePlayerRelated: (msg: CommandResponse) => void
+	) {
+		this.subscriptionsOnMessagePlayerRelated.set(subscribeId, onMessagePlayerRelated)
+		return () => this.subscriptionsOnMessagePlayerRelated.delete(subscribeId)
 	}
 
 	subscribeOnMessageCommand(subscribeId: string, onMessageCommand: (msg: CommandResponse) => void) {

@@ -40,6 +40,7 @@ export class ServerConsoleStore {
 
 	private isPopulatedConsole: boolean = false
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
+	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
 
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
 		const timestamp = new Date()
@@ -92,6 +93,11 @@ export class ServerConsoleStore {
 		this.addMessage(msg)
 	}
 
+	onMessagePlayerRelated(msg: CommandResponse) {
+		// console.log(msg)
+		this.addMessage(msg)
+	}
+
 	trySubscribeToMessagesGeneral(server: RustServer) {
 		if (this.unsubscribeOnMessagesGeneral) {
 			return
@@ -99,6 +105,16 @@ export class ServerConsoleStore {
 		this.unsubscribeOnMessagesGeneral = server.subscribeOnMessageGeneral(
 			`console_${server.id}`,
 			this.onMessageGeneral.bind(this)
+		)
+	}
+
+	trySubscribeToMessagesPlayerRelated(server: RustServer) {
+		if (this.unsubscribeOnMessagesPlayerRelated) {
+			return
+		}
+		this.unsubscribeOnMessagesPlayerRelated = server.subscribeOnMessagePlayerRelated(
+			`console_${server.id}`,
+			this.onMessagePlayerRelated.bind(this)
 		)
 	}
 
