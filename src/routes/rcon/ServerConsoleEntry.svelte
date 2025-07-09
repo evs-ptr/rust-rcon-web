@@ -45,6 +45,8 @@
 	}
 </script>
 
+<!-- TODO: handle chat messages -->
+
 <div>
 	<div class="flex gap-2">
 		<span class="text-blue-600">{formattedDate}</span>
