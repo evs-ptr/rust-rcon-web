@@ -1,4 +1,5 @@
 import { WebSocketWrapper } from './websocket-wrapper'
+
 export interface CommandSend {
 	Message: string
 	Identifier: number

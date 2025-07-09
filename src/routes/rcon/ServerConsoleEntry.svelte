@@ -16,34 +16,35 @@
 	function prepareText(text: string): string {
 		return text.trim()
 	}
+
+	function getLogTypeClasses(logType: LogType): string {
+		switch (logType) {
+			case LogType.Error:
+				return 'text-red-500'
+			case LogType.Warning:
+				return 'text-yellow-500'
+			default:
+				return ''
+		}
+	}
 </script>
 
 <div>
 	<div class="flex gap-4">
 		<span class="text-blue-600">{formattedDate}</span>
-		<span
-			class="whitespace-pre"
-			class:text-red-500={message.logType == LogType.Error}
-			class:text-yellow-500={message.logType == LogType.Warning}
-		>
-			{prepareText(message.text)}
-		</span>
+		{@render logText(message)}
 	</div>
 	{#if message.responses}
 		<div class="flex flex-col text-gray-600">
 			{#each message.responses as response, i (i)}
-				{@render responseSnippet(response)}
+				{@render logText(response)}
 			{/each}
 		</div>
 	{/if}
 </div>
 
-{#snippet responseSnippet(response: ServerConsoleMessage)}
-	<span
-		class="whitespace-pre"
-		class:text-red-500={response.logType == LogType.Error}
-		class:text-yellow-500={response.logType == LogType.Warning}
-	>
-		{prepareText(response.text)}
+{#snippet logText(message: ServerConsoleMessage)}
+	<span class={['whitespace-pre', getLogTypeClasses(message.logType)]}>
+		{prepareText(message.text)}
 	</span>
 {/snippet}
