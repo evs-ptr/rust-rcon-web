@@ -115,7 +115,7 @@
 		onscroll={handleScroll}
 		class="flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
 	>
-		<div class="mt-auto py-4">
+		<div class="mt-auto flex flex-col gap-0.5 py-4">
 			{#each store.messages as message (message.id)}
 				{@render consoleMessage(message)}
 			{/each}
