@@ -1,4 +1,4 @@
-import { LogType, type CommandResponse } from './rust-rcon'
+import { LogType, type CommandResponse } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()

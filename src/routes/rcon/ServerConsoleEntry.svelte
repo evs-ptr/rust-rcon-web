@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LogType } from './rust-rcon'
+	import { LogType } from './rust-rcon.types'
 	import type { ServerConsoleMessage } from './server-console.svelte'
 
 	interface Props {

@@ -1,26 +1,5 @@
+import type { CommandResponse, CommandSend } from './rust-rcon.types'
 import { WebSocketWrapper } from './websocket-wrapper'
-
-export interface CommandSend {
-	Message: string
-	Identifier: number
-}
-
-export interface CommandResponse {
-	Message: string
-	Identifier: number
-	Type: LogType
-	Stacktrace: string
-}
-
-export enum LogType {
-	Generic = 'Generic',
-	Error = 'Error',
-	Warning = 'Warning',
-	Chat = 'Chat',
-	Report = 'Report',
-	ClientPerf = 'ClientPerf',
-	Subscription = 'Subscription',
-}
 
 const MAX_INT_32 = 2_147_483_647
 const MIN_INT_32 = -2_147_483_648
