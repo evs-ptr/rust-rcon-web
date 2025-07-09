@@ -255,4 +255,81 @@ describe('RustRconConnection', function (): void {
 		const priv = conn as unknown as { messagesMap: Map<number, unknown> }
 		expect(priv.messagesMap.size).toBe(0)
 	})
+
+	it('sendCommandGetResponsesMany() handles multiple responses and timeout', async function (): Promise<void> {
+		vi.useFakeTimers()
+		const conn = new RustRconConnection('ws://example')
+		await conn.connect()
+		const socket = FakeWebSocket.instances[0]
+
+		const callback = vi.fn()
+		conn.sendCommandGetResponsesMany('list', callback)
+
+		expect(socket.sent.length).toBe(1)
+		const sentRaw = socket.sent[0] as string
+		const sent = JSON.parse(sentRaw) as { Message: string; Identifier: number }
+		expect(sent.Message).toBe('list')
+
+		const response1: CommandResponse = {
+			Message: 'Player 1',
+			Identifier: sent.Identifier,
+			Type: LogType.Generic,
+			Stacktrace: '',
+		}
+		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response1) }))
+		expect(callback).toHaveBeenCalledWith(response1)
+		expect(callback).toHaveBeenCalledTimes(1)
+
+		const response2: CommandResponse = {
+			Message: 'Player 2',
+			Identifier: sent.Identifier,
+			Type: LogType.Generic,
+			Stacktrace: '',
+		}
+		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response2) }))
+		expect(callback).toHaveBeenCalledWith(response2)
+		expect(callback).toHaveBeenCalledTimes(2)
+
+		// Now, let's test the timeout
+		const priv = conn as unknown as { messagesMapMany: Map<number, unknown> }
+		expect(priv.messagesMapMany.has(sent.Identifier)).toBe(true)
+
+		await vi.advanceTimersByTimeAsync(5_000)
+
+		expect(priv.messagesMapMany.has(sent.Identifier)).toBe(false)
+
+		// After timeout, callback should not be called anymore
+		const response3: CommandResponse = {
+			Message: 'Player 3',
+			Identifier: sent.Identifier,
+			Type: LogType.Generic,
+			Stacktrace: '',
+		}
+		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response3) }))
+		expect(callback).toHaveBeenCalledTimes(2) // still 2
+	})
+
+	it('sendCommandGetResponsesMany() respects custom timeout', async function (): Promise<void> {
+		vi.useFakeTimers()
+		const conn = new RustRconConnection('ws://example')
+		await conn.connect()
+
+		const callback = vi.fn()
+		conn.sendCommandGetResponsesMany('list', callback, 10_000) // custom timeout
+
+		const priv = conn as unknown as {
+			messagesMapMany: Map<number, unknown>
+		}
+		const socket = FakeWebSocket.instances[0]
+		const sentRaw = socket.sent[0] as string
+		const sent = JSON.parse(sentRaw) as { Identifier: number }
+
+		expect(priv.messagesMapMany.has(sent.Identifier)).toBe(true)
+
+		await vi.advanceTimersByTimeAsync(5_000)
+		expect(priv.messagesMapMany.has(sent.Identifier)).toBe(true) // should still be there
+
+		await vi.advanceTimersByTimeAsync(5_000)
+		expect(priv.messagesMapMany.has(sent.Identifier)).toBe(false) // should be gone now
+	})
 })
