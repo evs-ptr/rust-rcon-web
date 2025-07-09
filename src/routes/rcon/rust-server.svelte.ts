@@ -55,17 +55,24 @@ export class RustServer {
 		return this.rcon.subscribeOnMessageGeneral(subscribeId, onMessage)
 	}
 
-	sendCommand(command: string) {
-		if (!this.rcon || !this.connectionWasEstablished) {
-			return
-		}
-		return this.rcon.sendCommand(command)
-	}
-
 	async sendCommandGetResponse(command: string) {
 		if (!this.rcon || !this.connectionWasEstablished) {
 			return
 		}
 		return this.rcon.sendCommandGetResponse(command)
+	}
+
+	sendCommandGetResponsesMany(command: string, callback: (msg: CommandResponse) => void) {
+		if (!this.rcon || !this.connectionWasEstablished) {
+			return
+		}
+		return this.rcon.sendCommandGetResponsesMany(command, callback)
+	}
+
+	sendCommand(command: string) {
+		if (!this.rcon || !this.connectionWasEstablished) {
+			return
+		}
+		return this.rcon.sendCommand(command)
 	}
 }

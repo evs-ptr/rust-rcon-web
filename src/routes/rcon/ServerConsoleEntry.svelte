@@ -24,9 +24,11 @@
 			<span class="whitespace-pre">{prepareText(message.text)}</span>
 		</div>
 	</div>
-	{#if message.response}
+	{#if message.responses}
 		<div class="flex flex-col text-gray-600">
-			<span class="whitespace-pre">{prepareText(message.response.text)}</span>
+			{#each message.responses as response, i (i)}
+				<span class="whitespace-pre">{prepareText(response.text)}</span>
+			{/each}
 		</div>
 	{/if}
 </div>

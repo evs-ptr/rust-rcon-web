@@ -91,19 +91,14 @@
 
 		const userCommand = store.addMessageRaw(command, ServerConsoleMessageType.UserCommand)
 
-		server
-			.sendCommandGetResponse(command)
-			.then((response) => {
-				if (response) {
-					const msg = store.parseMessage(response)
-					userCommand.response = msg
-					console.log(msg)
-					scrollToBottomIfNeeded()
-				}
-			})
-			.catch(() => {
-				// ignore
-			})
+		server.sendCommandGetResponsesMany(command, (response) => {
+			const msg = store.parseMessage(response)
+			if (userCommand.responses == null) {
+				userCommand.responses = []
+			}
+			userCommand.responses.push(msg)
+			scrollToBottomIfNeeded()
+		})
 
 		store.commandInput = ''
 	}

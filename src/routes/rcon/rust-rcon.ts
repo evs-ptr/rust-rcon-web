@@ -36,6 +36,8 @@ export class RustRconConnection extends WebSocketWrapper {
 	>()
 	private readonly messageTimeOut = 6_000
 
+	private readonly messagesMapMany = new Map<number, (msg: CommandResponse) => void>()
+
 	private readonly subscriptionsOnMessageGeneral: Map<string, (msg: CommandResponse) => void> = new Map()
 	private readonly subscriptionsOnMessageCommand: Map<string, (msg: CommandResponse) => void> = new Map()
 
@@ -46,6 +48,7 @@ export class RustRconConnection extends WebSocketWrapper {
 	disconnect() {
 		super.disconnect()
 		this.messagesMap.clear()
+		this.messagesMapMany.clear()
 		this.subscriptionsOnMessageGeneral.clear()
 		this.subscriptionsOnMessageCommand.clear()
 	}
@@ -57,10 +60,17 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		try {
 			const msg = JSON.parse(data) as CommandResponse
+
 			const resolve = this.messagesMap.get(msg.Identifier)
 			if (resolve) {
 				this.messagesMap.delete(msg.Identifier)
 				resolve(msg)
+				return
+			}
+
+			const callbackMany = this.messagesMapMany.get(msg.Identifier)
+			if (callbackMany) {
+				callbackMany(msg)
 				return
 			}
 
@@ -130,6 +140,24 @@ export class RustRconConnection extends WebSocketWrapper {
 		})
 
 		return Promise.race([promise1, promise2]) as Promise<CommandResponse>
+	}
+
+	sendCommandGetResponsesMany(
+		command: string,
+		callback: (msg: CommandResponse) => void,
+		timeout: number = 5_000
+	): void {
+		const msgId = this.takeNextMsgId()
+		const msg = this.constructMessage(command, msgId)
+		const serialized = JSON.stringify(msg)
+
+		this.messagesMapMany.set(msgId, callback)
+
+		setTimeout(() => {
+			this?.messagesMapMany?.delete(msgId)
+		}, timeout)
+
+		this.send(serialized)
 	}
 
 	sendCommand(command: string) {

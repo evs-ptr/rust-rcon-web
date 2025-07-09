@@ -19,7 +19,7 @@ export class ServerConsoleMessage {
 
 	public readonly timestamp: Date
 
-	public response: ServerConsoleMessage | null = $state.raw(null)
+	public responses: ServerConsoleMessage[] | null = $state(null)
 
 	constructor(message: string, type: ServerConsoleMessageType, consoleType: LogType, timestamp: Date) {
 		this.id = ServerConsoleMessage.idCounter++
