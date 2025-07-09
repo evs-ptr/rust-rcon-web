@@ -1,8 +1,11 @@
 <script lang="ts">
 	import '../app.css'
 	import Header from './Header.svelte'
+	import { setServersManagerContext } from './rcon/servers-manager.svelte'
 
 	let { children } = $props()
+
+	setServersManagerContext()
 </script>
 
 <div class="flex min-h-screen flex-col">

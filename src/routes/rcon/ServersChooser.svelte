@@ -1,13 +1,12 @@
 <script lang="ts">
 	import type { RustServer } from './rust-server.svelte'
-	import { createServersManager } from './servers-manager.svelte'
+	import { ServersManager } from './servers-manager.svelte'
 
 	interface Props {
-		serversManager: ReturnType<typeof createServersManager>
-		selectedServer: RustServer | null
+		serversManager: ServersManager
 	}
 
-	let { serversManager, selectedServer = $bindable() }: Props = $props()
+	let { serversManager }: Props = $props()
 
 	function addBlankServer() {
 		const newServer = serversManager.addServer()
@@ -15,7 +14,7 @@
 	}
 
 	function switchServer(server: RustServer) {
-		selectedServer = server
+		serversManager.selectedServer = server
 	}
 </script>
 
