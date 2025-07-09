@@ -113,9 +113,9 @@
 	<div
 		bind:this={consoleContainer}
 		onscroll={handleScroll}
-		class="flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll font-mono text-xs text-nowrap"
+		class="flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll"
 	>
-		<div class="mt-auto flex flex-col gap-0.5 py-4">
+		<div class="mt-auto flex flex-col gap-0.5 py-4 font-mono text-xs text-nowrap">
 			{#each store.messages as message (message.id)}
 				<ServerConsoleEntry {message} />
 			{/each}
