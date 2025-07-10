@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js'
-	import * as Tabs from '$lib/components/ui/tabs/index.js'
 	import PlusIcon from '@lucide/svelte/icons/plus'
 	import type { RustServer } from './rust-server.svelte'
 	import { ServersManager } from './servers-manager.svelte'
@@ -22,19 +21,21 @@
 	}
 </script>
 
-<Tabs.Root value={serversManager.selectedServer?.id.toString() ?? '0'}>
-	<Tabs.List>
-		{#each serversManager.servers as server (server.id)}
-			<Tabs.Trigger value={server.id.toString()} onclick={() => switchServer(server)}>
-				<!-- TODO: is connected indicator -->
-				<!-- TODO: server name if exists -->
-				<span>{server.ipPort.trim() || '_'}</span>
-				<!-- TODO: server fps -->
-				<!-- TODO: delete button -->
-			</Tabs.Trigger>
-		{/each}
-		<Button variant="ghost" size="icon" onclick={addBlankServer}>
-			<PlusIcon />
+<div class="flex flex-row flex-wrap gap-2">
+	{#each serversManager.servers as server (server.id)}
+		<Button
+			variant="outline"
+			class={{ ring: server === serversManager.selectedServer }}
+			onclick={() => switchServer(server)}
+		>
+			<!-- TODO: is connected indicator -->
+			<!-- TODO: server name if exists -->
+			<span>{server.ipPort.trim() || '_'}</span>
+			<!-- TODO: server fps -->
+			<!-- TODO: delete button -->
 		</Button>
-	</Tabs.List>
-</Tabs.Root>
+	{/each}
+	<Button variant="outline" size="icon" onclick={addBlankServer}>
+		<PlusIcon />
+	</Button>
+</div>
