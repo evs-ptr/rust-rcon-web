@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index.js'
+	import { Button, buttonVariants } from '$lib/components/ui/button'
+	import * as Tooltip from '$lib/components/ui/tooltip'
 	import PlusIcon from '@lucide/svelte/icons/plus'
 	import XIcon from '@lucide/svelte/icons/x'
 	import type { RustServer } from './rust-server.svelte'
@@ -31,10 +32,7 @@
 		<div class="flex items-center">
 			<Button
 				variant="outline"
-				class={{
-					'ring-primary/40 ring': server === serversManager.selectedServer,
-					'rounded-r-none': true,
-				}}
+				class={{ 'ring-primary/40 ring': server === serversManager.selectedServer, 'rounded-r-none': true }}
 				onclick={() => switchServer(server)}
 			>
 				<!-- TODO: is connected indicator -->
@@ -42,20 +40,36 @@
 				<span>{server.ipPort.trim() || '_'}</span>
 				<!-- TODO: server fps -->
 			</Button>
-			<Button
-				variant="outline"
-				size="icon"
-				class={{
-					'hover:text-destructive rounded-l-none border-l-0': true,
-					'ring-primary/40 ring': server === serversManager.selectedServer,
-				}}
-				onclick={() => deleteServer(server)}
-			>
-				<XIcon />
-			</Button>
+
+			<Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger
+						class={[
+							buttonVariants({ variant: 'outline', size: 'icon' }),
+							{
+								'hover:text-destructive rounded-l-none border-l-0': true,
+								'ring-primary/40 ring': server === serversManager.selectedServer,
+							},
+						]}
+						onclick={() => deleteServer(server)}
+					>
+						<XIcon />
+					</Tooltip.Trigger>
+					<Tooltip.Content>
+						<p>Delete server</p>
+					</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
 		</div>
 	{/each}
-	<Button variant="outline" size="icon" onclick={addBlankServer}>
-		<PlusIcon />
-	</Button>
+	<Tooltip.Provider>
+		<Tooltip.Root>
+			<Tooltip.Trigger class={buttonVariants({ variant: 'outline', size: 'icon' })} onclick={addBlankServer}>
+				<PlusIcon />
+			</Tooltip.Trigger>
+			<Tooltip.Content>
+				<p>Add new server</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+	</Tooltip.Provider>
 </div>
