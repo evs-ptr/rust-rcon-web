@@ -6,8 +6,12 @@
 	const serversManager = getServersManagerContext()
 </script>
 
+<svelte:head>
+	<title>RCon</title>
+</svelte:head>
+
 <div>
-	<h1>RCON</h1>
+	<h1>RCon</h1>
 	<ServersChooser {serversManager} />
 	{#if serversManager.selectedServer}
 		<ServerMain server={serversManager.selectedServer} />

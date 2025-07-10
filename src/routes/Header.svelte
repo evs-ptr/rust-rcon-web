@@ -21,7 +21,7 @@
 				variant={page.url.pathname.startsWith('/rcon') ? 'outline' : 'ghost'}
 				class={!page.url.pathname.startsWith('/rcon') ? 'border border-transparent' : ''}
 			>
-				RCON
+				RCon
 			</Button>
 		</div>
 		<div>
