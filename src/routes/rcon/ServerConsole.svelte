@@ -140,7 +140,7 @@
 	<div
 		bind:this={consoleContainer}
 		onscroll={handleScroll}
-		class="bg-card flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll rounded-md border"
+		class="bg-card flex h-[calc(100vh-18rem)] resize-y flex-col overflow-x-scroll overflow-y-scroll rounded-md border"
 	>
 		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
 			{#each store.messages as message (message.id)}
@@ -155,7 +155,6 @@
 				onkeydown={handleKeydown}
 				type="text"
 				class="flex-1"
-				autofocus
 				placeholder="Enter command..."
 			/>
 			<Button type="submit">Send</Button>
