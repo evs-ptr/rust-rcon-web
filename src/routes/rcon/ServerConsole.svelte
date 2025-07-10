@@ -85,7 +85,10 @@
 		store.trySubscribeToMessagesPlayerRelated(server)
 	})
 
-	function handleSubmit() {
+	function handleSubmit(e: SubmitEvent) {
+		// prevent unfocus
+		e.preventDefault()
+
 		if (!store.commandInput.trim()) {
 			return
 		}
