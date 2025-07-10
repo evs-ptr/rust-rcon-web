@@ -1,4 +1,5 @@
-import { RustRconConnection, type CommandResponse } from './rust-rcon'
+import { RustRconConnection } from './rust-rcon'
+import type { CommandResponse } from './rust-rcon.types'
 
 export class RustServer {
 	private static idCounter = 0

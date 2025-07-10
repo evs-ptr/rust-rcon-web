@@ -7,7 +7,7 @@ export class WebSocketWrapper {
 
 	private reconnectAttempts = 0
 	private maxReconnectAttempts = 50
-	private reconnectTimeout: number | null = null
+	private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
 	private baseReconnectDelay = 1000
 
 	private connectTimeout = 5000
