@@ -1,5 +1,7 @@
 <script lang="ts">
 	import '../app.css'
+
+	import { ModeWatcher } from 'mode-watcher'
 	import Header from './Header.svelte'
 	import { setServersManagerContext } from './rcon/servers-manager.svelte'
 
@@ -8,6 +10,7 @@
 	setServersManagerContext()
 </script>
 
+<ModeWatcher />
 <div class="flex min-h-screen flex-col">
 	<Header />
 
