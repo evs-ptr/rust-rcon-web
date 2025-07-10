@@ -19,7 +19,7 @@ Packages:
 Basic rules for UI:
 
 - We are using shadecn-svelte, so prefer it usage
-- We are using lucide/svelte for icons, so use only it for creating icons
+- We are using `@lucide/svelte` for icons, so use only it for creating icons
 - Avoid writing aria properties
 
 Basic rules for writing CODE:
