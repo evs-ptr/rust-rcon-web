@@ -6,24 +6,24 @@
 	import { toggleMode } from 'mode-watcher'
 </script>
 
-<header>
-	<nav class="flex flex-row justify-between px-4 py-2">
-		<div class="flex flex-row gap-2">
+<header class="sticky top-0 backdrop-blur-md">
+	<div class="flex flex-row justify-between px-4 py-2">
+		<nav class="flex flex-row gap-2">
 			<Button
 				href="/"
 				variant={page.url.pathname === '/' ? 'outline' : 'ghost'}
-				class={page.url.pathname !== '/' ? 'border border-transparent' : ''}
+				class={{ 'border border-transparent': page.url.pathname !== '/' }}
 			>
 				Home
 			</Button>
 			<Button
 				href="/rcon"
 				variant={page.url.pathname.startsWith('/rcon') ? 'outline' : 'ghost'}
-				class={!page.url.pathname.startsWith('/rcon') ? 'border border-transparent' : ''}
+				class={{ 'border border-transparent': !page.url.pathname.startsWith('/rcon') }}
 			>
 				RCon
 			</Button>
-		</div>
+		</nav>
 		<div>
 			<Button onclick={toggleMode} variant="outline" size="icon">
 				<SunIcon
@@ -35,7 +35,7 @@
 				<span class="sr-only">Toggle theme</span>
 			</Button>
 		</div>
-	</nav>
+	</div>
 </header>
 
 <style>
