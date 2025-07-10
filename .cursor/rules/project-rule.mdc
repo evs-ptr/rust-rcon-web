@@ -16,6 +16,12 @@ Packages:
 - vitest (v3.2.4)
 - typescript (v5.8.3)
 
+Basic rules for UI:
+
+- We are using shadecn-svelte, so prefer it usage
+- We are using lucide/svelte for icons, so use only it for creating icons
+- Avoid writing aria properties
+
 Basic rules for writing CODE:
 
 - ALWAYS use typescript, in .svelte files and other. No javascript at all.
