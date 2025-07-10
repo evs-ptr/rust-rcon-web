@@ -11,7 +11,6 @@
 </svelte:head>
 
 <div>
-	<h1>RCon</h1>
 	<ServersChooser {serversManager} />
 	{#if serversManager.selectedServer}
 		<ServerMain server={serversManager.selectedServer} />
