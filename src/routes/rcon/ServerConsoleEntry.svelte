@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LogType } from './rust-rcon.types'
+	import { ChatChannelEnum, LogType, type ChatEntry } from './rust-rcon.types'
 	import type { ServerConsoleMessage } from './server-console.svelte'
 
 	interface Props {
@@ -15,6 +15,11 @@
 
 	function prepareText(text: string): string {
 		return text.trim()
+	}
+
+	// TODO: you know what to do
+	function prepareChatText(chatEntry: ChatEntry): string {
+		return `[${ChatChannelEnum[chatEntry.Channel]}] ${chatEntry.Username}: ${chatEntry.Message.trim()}`
 	}
 
 	function getLogTypeClasses(logType: LogType): string[] {
@@ -45,8 +50,6 @@
 	}
 </script>
 
-<!-- TODO: handle chat messages -->
-
 <div>
 	<div class="flex gap-2">
 		<span class="text-blue-600">{formattedDate}</span>
@@ -63,6 +66,14 @@
 
 {#snippet logText(message: ServerConsoleMessage)}
 	<span class={['whitespace-pre', ...getLogTypeClasses(message.logType)]}>
-		{prepareText(message.text)}
+		{@render txt(message.message)}
 	</span>
+{/snippet}
+
+{#snippet txt(message: string | ChatEntry)}
+	{#if typeof message === 'string'}
+		{prepareText(message)}
+	{:else}
+		{prepareChatText(message)}
+	{/if}
 {/snippet}

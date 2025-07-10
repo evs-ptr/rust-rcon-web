@@ -1,4 +1,4 @@
-import { LogType, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
+import { LogType, type ChatEntry, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()
@@ -13,7 +13,7 @@ export class ServerConsoleMessage {
 	private static idCounter = 0
 	public readonly id: number
 
-	public readonly text: string
+	public readonly message: string | ChatEntry
 	public readonly type: ServerConsoleMessageType
 	public readonly logType: LogType
 
@@ -21,9 +21,14 @@ export class ServerConsoleMessage {
 
 	public responses: ServerConsoleMessage[] | null = $state(null)
 
-	constructor(message: string, type: ServerConsoleMessageType, consoleType: LogType, timestamp: Date) {
+	constructor(
+		message: string | ChatEntry,
+		type: ServerConsoleMessageType,
+		consoleType: LogType,
+		timestamp: Date
+	) {
 		this.id = ServerConsoleMessage.idCounter++
-		this.text = message
+		this.message = message
 		this.type = type
 		this.logType = consoleType
 		this.timestamp = timestamp
@@ -68,6 +73,10 @@ export class ServerConsoleStore {
 			timestamp
 		)
 	}
+	parseChatMessage(message: ChatEntry) {
+		const timestamp = new Date(message.Time * 1000)
+		return new ServerConsoleMessage(message, ServerConsoleMessageType.Console, LogType.Chat, timestamp)
+	}
 
 	addMessage(message: CommandResponse): ServerConsoleMessage {
 		const msg = this.parseMessage(message)
@@ -81,10 +90,20 @@ export class ServerConsoleStore {
 		return msg
 	}
 
-	addChatMessage(message: CommandResponse): ServerConsoleMessage {
-		const msg = this.parseMessage(message)
+	addChatMessage(message: ChatEntry): ServerConsoleMessage {
+		const msg = this.parseChatMessage(message)
 		this.messages.push(msg)
 		return msg
+	}
+
+	addChatMessageFromCommandResponse(message: CommandResponse): ServerConsoleMessage {
+		try {
+			const chatEntry = JSON.parse(message.Message) as ChatEntry
+			return this.addChatMessage(chatEntry)
+		} catch (error) {
+			console.error(error)
+			return this.addMessage(message)
+		}
 	}
 
 	async tryPopulateConsole(server: RustServer) {
@@ -97,18 +116,33 @@ export class ServerConsoleStore {
 			return // TODO: handle error
 		}
 
+		const junkyard: ServerConsoleMessage[] = []
+
 		try {
 			const messages = JSON.parse(response.Message) as HistoryMessage[]
-			for (const message of messages) {
-				this.addHistoryMessage(message)
-			}
-
-			this.isPopulatedConsole = true
+			junkyard.push(...messages.map(this.parseHistoryMessage.bind(this)))
 		} catch (error) {
 			console.error(error)
 		}
 
-		// TODO: get chat too, sort by time, only then add
+		const responseChat = await server.sendCommandGetResponse('chat.tail 90')
+		if (!responseChat) {
+			this.messages.push(...junkyard)
+			this.isPopulatedConsole = true
+			console.error('Failed to get console.tail')
+			return // TODO: handle error
+		}
+
+		try {
+			const messagesChat = JSON.parse(responseChat.Message) as ChatEntry[]
+			junkyard.push(...messagesChat.map(this.parseChatMessage.bind(this)))
+		} catch (error) {
+			console.error(error)
+		}
+
+		this.messages.push(...junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
+
+		this.isPopulatedConsole = true
 	}
 
 	onMessageGeneral(msg: CommandResponse) {
@@ -120,7 +154,7 @@ export class ServerConsoleStore {
 		console.log('onMessagePlayerRelated', msg)
 		switch (msg.Type) {
 			case LogType.Chat:
-				this.addChatMessage(msg)
+				this.addChatMessageFromCommandResponse(msg)
 				break
 			default:
 				this.addMessage(msg)
