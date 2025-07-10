@@ -28,7 +28,7 @@
 			<Tabs.Trigger value={server.id.toString()} onclick={() => switchServer(server)}>
 				<!-- TODO: is connected indicator -->
 				<!-- TODO: server name if exists -->
-				<span>{server.ipPort}</span>
+				<span>{server.ipPort.trim() || '_'}</span>
 				<!-- TODO: server fps -->
 				<!-- TODO: delete button -->
 			</Tabs.Trigger>

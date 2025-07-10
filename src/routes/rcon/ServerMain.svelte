@@ -11,7 +11,6 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<h2>Server: {server.ipPort}</h2>
 	{#if !server.connectionWasEstablished}
 		<ServerConnect {server} />
 	{:else}

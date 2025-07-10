@@ -10,7 +10,7 @@
 	<title>RCon</title>
 </svelte:head>
 
-<div>
+<div class="flex flex-col gap-6">
 	<ServersChooser {serversManager} />
 	{#if serversManager.selectedServer}
 		<ServerMain server={serversManager.selectedServer} />
