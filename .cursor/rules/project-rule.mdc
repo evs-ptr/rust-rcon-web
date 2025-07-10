@@ -6,6 +6,8 @@ alwaysApply: true
 
 This is project about web site which handles websocket connection to the RCon (remote console) of any Rust Server which user has access to.
 
+Bun is used as a package manager and runtime.
+
 Packages:
 
 - SvelteKit (v2.22.2)
@@ -37,5 +39,3 @@ Basic rules for writing CODE:
     - GOOD: `<form onsubmit={onSubmit}></form>`
 - CSS
   - Prefer using Tailwindcss (v4) instead of writing css classes/inlined css, unless usage of tailwind in current context will lead to abnormous class="..." size, then using css can be considered as allowed.
-- Comments
-  - DO NOT write useless code comments.

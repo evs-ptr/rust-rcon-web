@@ -1,3 +1,4 @@
+import { CommandHistory } from './command-history.svelte'
 import { LogType, type ChatEntry, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
 
@@ -39,6 +40,8 @@ export class ServerConsoleStore {
 	// TODO: make it NOT deep
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
+
+	public readonly history: CommandHistory = new CommandHistory()
 
 	public lastScrollTop: number | null = null
 	public lastShouldScroll: boolean | null = null

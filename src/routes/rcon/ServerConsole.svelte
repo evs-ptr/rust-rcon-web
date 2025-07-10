@@ -92,6 +92,8 @@
 
 		const userCommand = store.addMessageRaw(command, ServerConsoleMessageType.UserCommand)
 
+		store.history.add(command)
+
 		server.sendCommandGetResponsesMany(command, (response) => {
 			const msg = store.parseMessage(response)
 			if (userCommand.responses == null) {
@@ -102,6 +104,33 @@
 		})
 
 		store.commandInput = ''
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key == 'ArrowUp' || event.key == 'ArrowDown') {
+			event.preventDefault()
+
+			const history = store.history.commands
+			if (history.length === 0) {
+				return
+			}
+
+			if (event.key == 'ArrowUp') {
+				if (store.history.pos === -1) {
+					store.history.wip = store.commandInput
+				}
+
+				store.history.pos = Math.min(history.length - 1, store.history.pos + 1)
+			} else {
+				store.history.pos = Math.max(-1, store.history.pos - 1)
+			}
+
+			if (store.history.pos >= 0) {
+				store.commandInput = store.history.commands[store.history.pos]
+			} else {
+				store.commandInput = store.history.wip
+			}
+		}
 	}
 </script>
 
@@ -120,7 +149,7 @@
 	<div>
 		<form onsubmit={handleSubmit} class="flex gap-2">
 			<!-- svelte-ignore a11y_autofocus -->
-			<input bind:value={store.commandInput} type="text" class="flex-1" autofocus />
+			<input bind:value={store.commandInput} onkeydown={handleKeydown} type="text" class="flex-1" autofocus />
 			<button type="submit">Send</button>
 		</form>
 	</div>
