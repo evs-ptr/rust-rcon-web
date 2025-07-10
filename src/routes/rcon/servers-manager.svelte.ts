@@ -17,6 +17,20 @@ export class ServersManager {
 		this.servers.push(newServer)
 		return newServer
 	}
+
+	deleteServer(server: RustServer) {
+		const index = this.servers.indexOf(server)
+		if (index == -1) {
+			return
+		}
+
+		server.cleanUp()
+		this.servers.splice(index, 1)
+
+		if (this.selectedServer === server) {
+			this.selectedServer = this.servers[index] || null
+		}
+	}
 }
 
 // for SSR, we need to use context for it
