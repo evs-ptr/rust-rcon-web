@@ -25,7 +25,7 @@
 	{#each serversManager.servers as server (server.id)}
 		<Button
 			variant="outline"
-			class={{ ring: server === serversManager.selectedServer }}
+			class={{ 'ring-primary/40 ring': server === serversManager.selectedServer }}
 			onclick={() => switchServer(server)}
 		>
 			<!-- TODO: is connected indicator -->
