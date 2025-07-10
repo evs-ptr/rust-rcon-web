@@ -1,4 +1,4 @@
-import { LogType, type CommandResponse } from './rust-rcon.types'
+import { LogType, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()
@@ -50,8 +50,17 @@ export class ServerConsoleStore {
 	}
 
 	parseMessage(message: CommandResponse) {
-		// as we don't have this info in CommandResponse
 		const timestamp = new Date()
+		return new ServerConsoleMessage(
+			message.Message,
+			ServerConsoleMessageType.Console,
+			message.Type,
+			timestamp
+		)
+	}
+
+	parseHistoryMessage(message: HistoryMessage) {
+		const timestamp = new Date(message.Time * 1000)
 		return new ServerConsoleMessage(
 			message.Message,
 			ServerConsoleMessageType.Console,
@@ -62,6 +71,12 @@ export class ServerConsoleStore {
 
 	addMessage(message: CommandResponse): ServerConsoleMessage {
 		const msg = this.parseMessage(message)
+		this.messages.push(msg)
+		return msg
+	}
+
+	addHistoryMessage(message: HistoryMessage) {
+		const msg = this.parseHistoryMessage(message)
 		this.messages.push(msg)
 		return msg
 	}
@@ -83,17 +98,9 @@ export class ServerConsoleStore {
 		}
 
 		try {
-			//  {
-			//     "Message": "Saved 640 ents, cache(0.00), write(0.00), disk(0.01).",
-			//     "Stacktrace": "",
-			//     "Type": "Log",
-			//     "Time": 1752068442
-			//   },
-
-			// TODO: to ConsoleHistoryEntry
-			const messages = JSON.parse(response.Message)
+			const messages = JSON.parse(response.Message) as HistoryMessage[]
 			for (const message of messages) {
-				this.addMessage(message)
+				this.addHistoryMessage(message)
 			}
 
 			this.isPopulatedConsole = true

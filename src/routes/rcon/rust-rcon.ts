@@ -63,9 +63,9 @@ export class RustRconConnection extends WebSocketWrapper {
 				this.subscriptionsOnMessagePlayerRelated.forEach((onMessage) => onMessage(msg))
 			} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
 				this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
+			} else {
+				console.log('unknown message', msg)
 			}
-
-			console.log('unknown message', msg)
 		} catch (error) {
 			console.error('Failed to parse message:', error)
 		}

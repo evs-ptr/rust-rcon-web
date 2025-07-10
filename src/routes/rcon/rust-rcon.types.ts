@@ -44,6 +44,13 @@ export interface ChatEntry {
 	Time: number
 }
 
+export interface HistoryMessage {
+	Message: string
+	Stacktrace: string
+	Type: LogType
+	Time: number
+}
+
 export interface CommandSend {
 	Message: string
 	Identifier: number
