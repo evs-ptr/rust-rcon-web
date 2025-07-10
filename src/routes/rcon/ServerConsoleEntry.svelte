@@ -28,9 +28,9 @@
 				return [
 					'pl-2',
 					'border-l-2',
-					'border-red-500',
-					'text-red-500',
-					'bg-red-500/5',
+					'border-destructive',
+					'text-destructive',
+					'bg-destructive/10',
 					'rounded-r',
 					'font-medium',
 				]
@@ -38,9 +38,9 @@
 				return [
 					'pl-2',
 					'border-l-2',
-					'border-yellow-500',
-					'text-yellow-500',
-					'bg-yellow-500/5',
+					'border-yellow-600 dark:border-yellow-400',
+					'text-yellow-600 dark:text-yellow-400',
+					'bg-yellow-600/10 dark:bg-yellow-400/10',
 					'rounded-r',
 					'font-medium',
 				]
@@ -52,11 +52,11 @@
 
 <div>
 	<div class="flex gap-2">
-		<span class="text-blue-600">{formattedDate}</span>
+		<span class="text-cyan-500 dark:text-cyan-400">{formattedDate}</span>
 		{@render logText(message)}
 	</div>
 	{#if message.responses}
-		<div class="flex flex-col text-gray-600">
+		<div class="text-muted-foreground flex flex-col">
 			{#each message.responses as response, i (i)}
 				{@render logText(response)}
 			{/each}
