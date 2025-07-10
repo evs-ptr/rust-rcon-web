@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button } from '$lib/components/ui/button'
+	import { Input } from '$lib/components/ui/input'
 	import { tick } from 'svelte'
 	import type { RustServer } from './rust-server.svelte'
 	import {
@@ -138,9 +140,9 @@
 	<div
 		bind:this={consoleContainer}
 		onscroll={handleScroll}
-		class="flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll"
+		class="bg-card flex h-[70vh] resize-y flex-col overflow-x-scroll overflow-y-scroll rounded-md border"
 	>
-		<div class="mt-auto flex flex-col gap-0.5 py-4 font-mono text-xs text-nowrap">
+		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
 			{#each store.messages as message (message.id)}
 				<ServerConsoleEntry {message} />
 			{/each}
@@ -148,9 +150,15 @@
 	</div>
 	<div>
 		<form onsubmit={handleSubmit} class="flex gap-2">
-			<!-- svelte-ignore a11y_autofocus -->
-			<input bind:value={store.commandInput} onkeydown={handleKeydown} type="text" class="flex-1" autofocus />
-			<button type="submit">Send</button>
+			<Input
+				bind:value={store.commandInput}
+				onkeydown={handleKeydown}
+				type="text"
+				class="flex-1"
+				autofocus
+				placeholder="Enter command..."
+			/>
+			<Button type="submit">Send</Button>
 		</form>
 	</div>
 </div>
