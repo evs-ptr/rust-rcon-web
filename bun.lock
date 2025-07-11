@@ -9,7 +9,6 @@
         "@fontsource-variable/jetbrains-mono": "^5.2.6",
         "@internationalized/date": "^3.8.2",
         "@lucide/svelte": "^0.515.0",
-        "@sveltejs/adapter-auto": "^6.0.1",
         "@sveltejs/adapter-cloudflare": "^7.0.5",
         "@sveltejs/kit": "^2.22.5",
         "@sveltejs/vite-plugin-svelte": "^5.1.0",
@@ -26,7 +25,7 @@
         "prettier": "^3.6.2",
         "prettier-plugin-svelte": "^3.4.0",
         "prettier-plugin-tailwindcss": "^0.6.14",
-        "svelte": "^5.35.5",
+        "svelte": "^5.35.6",
         "svelte-check": "^4.2.2",
         "tailwind-merge": "^3.3.1",
         "tailwind-variants": "^1.0.0",
@@ -271,8 +270,6 @@
     "@speed-highlight/core": ["@speed-highlight/core@1.2.7", "", {}, "sha512-0dxmVj4gxg3Jg879kvFS/msl4s9F3T9UXC1InxgOf7t5NvcPD97u/WTA5vL/IxWHMn7qSxBozqrnnE2wvl1m8g=="],
 
     "@sveltejs/acorn-typescript": ["@sveltejs/acorn-typescript@1.0.5", "", { "peerDependencies": { "acorn": "^8.9.0" } }, "sha512-IwQk4yfwLdibDlrXVE04jTZYlLnwsTT2PIOQQGNLWfjavGifnk1JD1LcZjZaBTRcxZu2FfPfNLOE04DSu9lqtQ=="],
-
-    "@sveltejs/adapter-auto": ["@sveltejs/adapter-auto@6.0.1", "", { "peerDependencies": { "@sveltejs/kit": "^2.0.0" } }, "sha512-mcWud3pYGPWM2Pphdj8G9Qiq24nZ8L4LB7coCUckUEy5Y7wOWGJ/enaZ4AtJTcSm5dNK1rIkBRoqt+ae4zlxcQ=="],
 
     "@sveltejs/adapter-cloudflare": ["@sveltejs/adapter-cloudflare@7.0.5", "", { "dependencies": { "@cloudflare/workers-types": "^4.20250507.0", "worktop": "0.8.0-next.18" }, "peerDependencies": { "@sveltejs/kit": "^2.0.0", "wrangler": "^4.0.0" } }, "sha512-wZw8MHUZs5E8n4ldEAjgaWY1vaGQgBblPePqIZQoSxlDdLtJHjoiy0esdk4MGnkzSgLSJ3QvX7IEFKpWZBkaeA=="],
 
