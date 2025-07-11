@@ -154,7 +154,7 @@ export class ServerConsoleStore {
 	}
 
 	onMessagePlayerRelated(msg: CommandResponse) {
-		console.log('onMessagePlayerRelated', msg)
+		// console.log('onMessagePlayerRelated', msg)
 		switch (msg.Type) {
 			case LogType.Chat:
 				this.addChatMessageFromCommandResponse(msg)
