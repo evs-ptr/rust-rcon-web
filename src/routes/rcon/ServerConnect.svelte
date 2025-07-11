@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button'
 	import * as Card from '$lib/components/ui/card/index'
+	import { Checkbox } from '$lib/components/ui/checkbox'
 	import { Input } from '$lib/components/ui/input'
 	import { Label } from '$lib/components/ui/label'
 	import type { RustServer } from './rust-server.svelte'
+	import { Loader2Icon } from '@lucide/svelte'
 
 	interface Props {
 		server: RustServer
@@ -14,6 +16,7 @@
 	let inp1Invalid = $state(false)
 	let inp2Invalid = $state(false)
 	let error = $state('')
+	let isAwaitingResponse = $state(false)
 
 	async function tryConnect() {
 		error = ''
@@ -39,12 +42,15 @@
 			return
 		}
 
+		isAwaitingResponse = true
+
 		try {
 			await server.connect()
 		} catch {
 			error = 'Failed to connect. Please verify the IP, port, and password.'
-			return
 		}
+
+		isAwaitingResponse = false
 	}
 </script>
 
@@ -65,6 +71,7 @@
 					autocomplete="off"
 					bind:value={server.ipPort}
 					oninput={() => (inp1Invalid = false)}
+					disabled={isAwaitingResponse}
 				/>
 			</div>
 
@@ -78,14 +85,26 @@
 					autocomplete="off"
 					bind:value={server.password}
 					oninput={() => (inp2Invalid = false)}
+					disabled={isAwaitingResponse}
 				/>
+			</div>
+
+			<div class="flex items-start gap-3">
+				<Checkbox id="use-secure" bind:checked={server.useSecureWebSocket} disabled={isAwaitingResponse} />
+				<Label for="use-secure">Use secure (wss://)</Label>
 			</div>
 
 			{#if error}
 				<p class="text-destructive text-sm">{error}</p>
 			{/if}
 
-			<Button type="submit" class="w-full">Connect</Button>
+			<Button type="submit" class="w-full" disabled={isAwaitingResponse}>
+				{#if isAwaitingResponse}
+					<Loader2Icon class="animate-spin" />
+				{:else}
+					Connect
+				{/if}
+			</Button>
 		</form>
 	</Card.Content>
 </Card.Root>
