@@ -1,9 +1,13 @@
 {
 	"name": "rust-rcon-web",
 	"main": ".svelte-kit/cloudflare/_worker.js",
-	"compatibility_date": "2025-01-01",
+	"compatibility_date": "2025-07-11",
 	"assets": {
 		"binding": "ASSETS",
+
 		"directory": ".svelte-kit/cloudflare",
+	},
+	"observability": {
+		"enabled": true,
 	},
 }
