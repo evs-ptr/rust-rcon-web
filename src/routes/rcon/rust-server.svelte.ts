@@ -40,8 +40,7 @@ export class RustServer {
 			await this.rcon.connect()
 		} catch (e) {
 			this.cleanUp()
-			console.error(e)
-			return false
+			throw e
 		}
 
 		this.connectionWasEstablished = true
