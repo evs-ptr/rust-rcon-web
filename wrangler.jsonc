@@ -10,4 +10,5 @@
 	"observability": {
 		"enabled": true,
 	},
+	"send_metrics": false,
 }
