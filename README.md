@@ -2,6 +2,10 @@
 
 A fast, reliable, and feature-rich web-based remote console (RCon) for Rust servers. Built with modern technologies to provide a seamless experience for server administrators.
 
+## Live Demo
+
+Check out the live version: [rust-rcon-web.evs-ptr.workers.dev](https://rust-rcon-web.evs-ptr.workers.dev)
+
 ![Rust RCon Web Screenshot](static/rcon-1.webp)
 
 ## Features
