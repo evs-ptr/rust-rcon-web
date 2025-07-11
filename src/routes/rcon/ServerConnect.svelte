@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { page } from '$app/state'
 	import { Button } from '$lib/components/ui/button'
 	import * as Card from '$lib/components/ui/card/index'
 	import { Checkbox } from '$lib/components/ui/checkbox'
 	import { Input } from '$lib/components/ui/input'
 	import { Label } from '$lib/components/ui/label'
+	import Loader2Icon from '@lucide/svelte/icons/loader-2'
 	import type { RustServer } from './rust-server.svelte'
-	import { Loader2Icon } from '@lucide/svelte'
 
 	interface Props {
 		server: RustServer
@@ -17,8 +18,37 @@
 		ipPortInvalid: false,
 		passwordInvalid: false,
 		error: '',
-		isAwaitingResponse: false
+		isAwaitingResponse: false,
 	})
+
+	let isIpIsLocal: boolean = $derived.by(() => {
+		const ip = server.ipPort.split(':')[0]
+		if (ip == 'localhost') {
+			return true
+		}
+
+		const ipv4Regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/
+		if (!ipv4Regex.test(ip)) {
+			return false // Not a valid IPv4 address
+		}
+
+		const parts = ip.split('.').map(Number)
+
+		// 127.0.0.0/8
+		if (parts[0] === 127) {
+			return true
+		}
+		// 10.0.0.0/8
+		if (parts[0] === 10) {
+			return true
+		}
+
+		return false
+	})
+
+	let showMixedContentWarning: boolean = $derived(
+		!isIpIsLocal && !!server.ipPort && page.url.protocol === 'http:' && !server.useSecureWebSocket
+	)
 
 	function validate() {
 		if (!server.ipPort) {
@@ -83,6 +113,18 @@
 					oninput={() => (form.ipPortInvalid = false)}
 					disabled={form.isAwaitingResponse}
 				/>
+
+				{#if showMixedContentWarning}
+					<p class="text-muted-foreground text-xs">
+						Your browser may block insecure WebSocket (<code>ws://</code>) connections when using a secure (<code
+							>https://</code
+						>) page and connecting to remote server.
+					</p>
+					<p class="text-muted-foreground text-xs">
+						To connect, either use a secure WebSocket (<code>wss://</code>) if your server supports it, or
+						access this web interface via <code>http://</code>
+					</p>
+				{/if}
 			</div>
 
 			<div class="grid gap-2">
