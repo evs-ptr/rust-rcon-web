@@ -8,7 +8,6 @@ export class ServersManager {
 	constructor() {
 		const server = this.addServer()
 		server.ipPort = '127.0.0.1:24247'
-		server.password = '1jEIXkbSQty3'
 		this.selectedServer = server
 	}
 
