@@ -12,7 +12,9 @@
 
 <div class="flex flex-col gap-2">
 	{#if !server.connectionWasEstablished}
-		<ServerConnect {server} />
+		{#key server}
+			<ServerConnect {server} />
+		{/key}
 	{:else}
 		<ServerConsole {server} />
 	{/if}
