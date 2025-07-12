@@ -103,6 +103,20 @@ Test files are located in the `src/tests` directory.
 └── package.json           # Project dependencies and scripts
 ```
 
+## Similar Projects
+
+Here are a few other web-based RCon tools for Rust:
+
+- **[Carbon Control Panel](https://carbonmod.gg/tools/control-panel/)** by Carbon Community
+  - An RCon tool that is part of a larger ecosystem for the Carbon modding framework.
+  - Has some Carbon-only features.
+  - **Source:** [github.com/CarbonCommunity/Carbon.Documentation](https://github.com/CarbonCommunity/Carbon.Documentation)
+  - **Framework Source**: [github.com/CarbonCommunity/Carbon](https://github.com/CarbonCommunity/Carbon)
+
+- **[webrcon](https://facepunch.github.io/webrcon/#/home)** by Facepunch
+  - A RCon tool directly from the creators of Rust.
+  - **Source:** [github.com/Facepunch/webrcon](https://github.com/Facepunch/webrcon)
+
 ## Contributing
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
