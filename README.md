@@ -34,7 +34,10 @@ Follow these instructions to get a local copy up and running for development and
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) installed on your machine.
+This project recommends using [Bun](https://bun.sh/) for its speed, but it is not required. You can use [Node.js](https://nodejs.org/) with `npm` as well.
+
+- **Recommended:** [Bun](https://bun.sh/)
+- **Alternative:** [Node.js](https://nodejs.org/) (v20 or higher)
 
 ### Installation
 
@@ -48,13 +51,21 @@ Follow these instructions to get a local copy up and running for development and
 2. **Install dependencies:**
 
    ```sh
+   # With Bun
    bun install
+
+   # Or with npm
+   npm install
    ```
 
 3. **Run the development server:**
 
    ```sh
+   # With Bun
    bun run dev
+
+   # Or with npm
+   npm run dev
    ```
 
 The application will be available at `http://localhost:5173`.
@@ -64,10 +75,14 @@ The application will be available at `http://localhost:5173`.
 To create a production version of the app:
 
 ```sh
+# With Bun
 bun run build
+
+# Or with npm
+npm run build
 ```
 
-You can preview the production build with `bun run preview`.
+You can preview the production build with `bun run preview` or `npm run preview`.
 
 ## Testing
 
@@ -76,13 +91,21 @@ This project uses [Vitest](https://vitest.dev/) for unit testing.
 - **Run all tests:**
 
   ```sh
+  # With Bun
   bun run test
+
+  # Or with npm
+  npm run test
   ```
 
 - **Run tests in watch mode:**
 
   ```sh
+  # With Bun
   bun run test:unit
+
+  # Or with npm
+  npm run test:unit
   ```
 
 Test files are located in the `src/tests` directory.
