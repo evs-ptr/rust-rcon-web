@@ -50,7 +50,7 @@
 	let showMixedContentWarning: boolean = $derived(
 		!isIpIsLocal &&
 			!!server.ipPort &&
-			page.url.protocol === 'http:' &&
+			page.url.protocol !== 'http:' &&
 			!server.useSecureWebSocket &&
 			!form.iKnow
 	)
