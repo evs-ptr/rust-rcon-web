@@ -19,6 +19,7 @@
 		passwordInvalid: false,
 		error: '',
 		isAwaitingResponse: false,
+		iKnow: false, // TODO: to config
 	})
 
 	let isIpIsLocal: boolean = $derived.by(() => {
@@ -47,7 +48,11 @@
 	})
 
 	let showMixedContentWarning: boolean = $derived(
-		!isIpIsLocal && !!server.ipPort && page.url.protocol === 'http:' && !server.useSecureWebSocket
+		!isIpIsLocal &&
+			!!server.ipPort &&
+			page.url.protocol === 'http:' &&
+			!server.useSecureWebSocket &&
+			!form.iKnow
 	)
 
 	function validate() {
@@ -116,13 +121,21 @@
 
 				{#if showMixedContentWarning}
 					<p class="text-muted-foreground text-xs">
-						Your browser may block insecure WebSocket (<code>ws://</code>) connections when using a secure (<code
-							>https://</code
-						>) page and connecting to remote server.
+						Your browser may block insecure WebSocket (<code>ws://</code>) connections when trying to connect
+						to remote server.
 					</p>
 					<p class="text-muted-foreground text-xs">
-						To connect, either use a secure WebSocket (<code>wss://</code>) if your server supports it, or
-						access this web interface via <code>http://</code>
+						You should use a secure WebSocket (<code>wss://</code>) if your server has it setup. (X509 cert,
+						rust switches)
+					</p>
+					<p class="text-muted-foreground text-xs">
+						<button
+							class="cursor-pointer underline"
+							onclick={(e: Event) => {
+								e.preventDefault()
+								form.iKnow = true
+							}}>I know, I know</button
+						>
 					</p>
 				{/if}
 			</div>
