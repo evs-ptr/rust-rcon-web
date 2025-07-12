@@ -101,7 +101,7 @@
 				<CardTitle>Secure by Default</CardTitle>
 			</CardHeader>
 			<CardContent>
-				Supports <code>wss://</code> and never stores credentials in plain text.
+				Supports <code>wss://</code> and never stores credentials.
 			</CardContent>
 		</Card>
 
