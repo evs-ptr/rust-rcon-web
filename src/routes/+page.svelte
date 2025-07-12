@@ -20,6 +20,23 @@
 		name="description"
 		content="Fast, reliable, browser-based RCon for Rust servers. Connect, execute commands and monitor logs in real-time."
 	/>
+	<link rel="canonical" href="https://rust-rcon-web.evs-ptr.workers.dev" />
+
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://rust-rcon-web.evs-ptr.workers.dev" />
+	<meta property="og:title" content="Rust RCon Web – Remote Console for Rust Servers" />
+	<meta
+		property="og:description"
+		content="Fast, reliable, browser-based RCon for Rust servers. Connect, execute commands and monitor logs in real-time."
+	/>
+
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:url" content="https://rust-rcon-web.evs-ptr.workers.dev" />
+	<meta property="twitter:title" content="Rust RCon Web – Remote Console for Rust Servers" />
+	<meta
+		property="twitter:description"
+		content="Fast, reliable, browser-based RCon for Rust servers. Connect, execute commands and monitor logs in real-time."
+	/>
 </svelte:head>
 
 <section class="flex flex-col items-center gap-6 py-24 text-center">
