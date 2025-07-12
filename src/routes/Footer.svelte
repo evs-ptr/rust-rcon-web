@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '$lib/components/ui/button/index.js'
 
 	import GithubIcon from '@lucide/svelte/icons/github'
 
@@ -19,5 +19,4 @@
 </footer>
 
 <style>
-	/* No extra styles needed; Tailwind handles layout */
 </style>

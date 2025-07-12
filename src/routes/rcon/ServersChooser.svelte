@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button, buttonVariants } from '$lib/components/ui/button'
-	import * as Tooltip from '$lib/components/ui/tooltip'
+	import { Button, buttonVariants } from '$lib/components/ui/button/index.js'
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js'
 	import PlusIcon from '@lucide/svelte/icons/plus'
 	import XIcon from '@lucide/svelte/icons/x'
 	import type { RustServer } from './rust-server.svelte'

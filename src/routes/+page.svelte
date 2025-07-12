@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card'
-	import { Separator } from '$lib/components/ui/separator'
+	import { Button } from '$lib/components/ui/button/index.js'
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js'
+	import { Separator } from '$lib/components/ui/separator/index.js'
 	// Lucide icons
 	import ActivityIcon from '@lucide/svelte/icons/activity'
 	import Code2Icon from '@lucide/svelte/icons/code-2'
