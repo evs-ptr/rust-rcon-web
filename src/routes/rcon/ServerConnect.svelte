@@ -6,7 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js'
 	import { Label } from '$lib/components/ui/label/index.js'
 	import Loader2Icon from '@lucide/svelte/icons/loader-2'
-	import type { RustServer } from './rust-server.svelte'
+	import type { RustServer } from './rust-server.svelte.ts'
 
 	interface Props {
 		server: RustServer
@@ -131,9 +131,9 @@
 					</p>
 					<p class="text-muted-foreground text-xs">
 						<button
+							type="button"
 							class="cursor-pointer underline"
-							onclick={(e: Event) => {
-								e.preventDefault()
+							onclick={() => {
 								form.iKnow = true
 							}}>I know, I know</button
 						>
