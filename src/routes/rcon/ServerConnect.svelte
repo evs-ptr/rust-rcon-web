@@ -78,7 +78,8 @@
 		return true
 	}
 
-	async function tryConnect() {
+	async function tryConnect(e: Event) {
+		e.preventDefault()
 		form.error = ''
 		form.ipPortInvalid = false
 		form.passwordInvalid = false
