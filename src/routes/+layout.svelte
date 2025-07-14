@@ -7,14 +7,17 @@
 	import Header from './Header.svelte'
 	import { setServersManagerContext } from './rcon/servers-manager.svelte'
 	import { setConfigStateContext } from '$lib/config-state.svelte'
+	import { setConfigGlobalContext } from '$lib/config-global.svelte'
 
 	let { children } = $props()
 
 	setServersManagerContext()
 	const configState = setConfigStateContext()
+	const configGlobal = setConfigGlobalContext()
 
 	onDestroy(() => {
 		configState.destroy()
+		configGlobal.destroy()
 	})
 </script>
 
