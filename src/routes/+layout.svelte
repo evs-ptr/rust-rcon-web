@@ -6,7 +6,7 @@
 	import Footer from './Footer.svelte'
 	import Header from './Header.svelte'
 	import { setServersManagerContext } from './rcon/servers-manager.svelte'
-	import { setConfigStateContext } from '$lib/configState.svelte'
+	import { setConfigStateContext } from '$lib/config-state.svelte'
 
 	let { children } = $props()
 
