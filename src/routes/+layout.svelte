@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css'
 
+	import { onDestroy } from 'svelte'
 	import { ModeWatcher } from 'mode-watcher'
 	import Footer from './Footer.svelte'
 	import Header from './Header.svelte'
@@ -10,7 +11,11 @@
 	let { children } = $props()
 
 	setServersManagerContext()
-	setConfigStateContext()
+	const configState = setConfigStateContext()
+
+	onDestroy(() => {
+		configState.destroy()
+	})
 </script>
 
 <ModeWatcher />
