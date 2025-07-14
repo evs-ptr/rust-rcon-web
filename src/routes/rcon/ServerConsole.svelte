@@ -9,13 +9,15 @@
 		type ServerConsoleStore,
 	} from './server-console.svelte'
 	import ServerConsoleEntry from './ServerConsoleEntry.svelte'
+	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 
 	interface Props {
 		server: RustServer
 	}
 
 	let { server }: Props = $props()
-	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id))
+	let config = getConfigGlobalContext()
+	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id, config))
 
 	let consoleContainer: HTMLDivElement | undefined
 

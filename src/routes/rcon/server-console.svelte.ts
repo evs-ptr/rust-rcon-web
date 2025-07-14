@@ -1,3 +1,4 @@
+import type { ConfigGlobal } from '$lib/config-global.svelte'
 import { CommandHistory } from './command-history.svelte'
 import { LogType, type ChatEntry, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
@@ -37,6 +38,8 @@ export class ServerConsoleMessage {
 }
 
 export class ServerConsoleStore {
+	public readonly config: ConfigGlobal
+
 	// TODO: make it NOT deep
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
@@ -49,6 +52,10 @@ export class ServerConsoleStore {
 	private isPopulatedConsole: boolean = false
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
+
+	constructor(config: ConfigGlobal) {
+		this.config = config
+	}
 
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
 		const timestamp = new Date()
@@ -114,7 +121,7 @@ export class ServerConsoleStore {
 			return
 		}
 
-		const response = await server.sendCommandGetResponse('console.tail 200')
+		const response = await server.sendCommandGetResponse(`console.tail ${this.config.consoleHistoryFetch}`)
 		if (!response) {
 			return // TODO: handle error
 		}
@@ -128,19 +135,23 @@ export class ServerConsoleStore {
 			console.error(error)
 		}
 
-		const responseChat = await server.sendCommandGetResponse('chat.tail 90')
-		if (!responseChat) {
-			this.messages.push(...junkyard)
-			this.isPopulatedConsole = true
-			console.error('Failed to get console.tail')
-			return // TODO: handle error
-		}
+		if (this.config.consoleChatInclude) {
+			const responseChat = await server.sendCommandGetResponse(
+				`chat.tail ${this.config.consoleChatHistoryFetch}`
+			)
+			if (!responseChat) {
+				this.messages.push(...junkyard)
+				this.isPopulatedConsole = true
+				console.error('Failed to get chat.tail')
+				return // TODO: handle error
+			}
 
-		try {
-			const messagesChat = JSON.parse(responseChat.Message) as ChatEntry[]
-			junkyard.push(...messagesChat.map(this.parseChatMessage.bind(this)))
-		} catch (error) {
-			console.error(error)
+			try {
+				const messagesChat = JSON.parse(responseChat.Message) as ChatEntry[]
+				junkyard.push(...messagesChat.map(this.parseChatMessage.bind(this)))
+			} catch (error) {
+				console.error(error)
+			}
 		}
 
 		this.messages.push(...junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
@@ -176,6 +187,10 @@ export class ServerConsoleStore {
 	}
 
 	trySubscribeToMessagesPlayerRelated(server: RustServer) {
+		if (!this.config.consoleChatInclude) {
+			return
+		}
+
 		if (this.unsubscribeOnMessagesPlayerRelated) {
 			return
 		}
@@ -188,12 +203,14 @@ export class ServerConsoleStore {
 	destroy() {
 		this.unsubscribeOnMessagesGeneral?.()
 		this.unsubscribeOnMessagesGeneral = null
+		this.unsubscribeOnMessagesPlayerRelated?.()
+		this.unsubscribeOnMessagesPlayerRelated = null
 		this.messages.length = 0
 	}
 }
 
-function createServerConsoleStore(id: number): ServerConsoleStore {
-	const store = new ServerConsoleStore()
+function createServerConsoleStore(id: number, config: ConfigGlobal): ServerConsoleStore {
+	const store = new ServerConsoleStore(config)
 	map.set(id, store)
 	return store
 }
@@ -206,10 +223,10 @@ export function removeServerConsoleStore(id: number): boolean {
 	return map.delete(id)
 }
 
-export function getServerConsoleStore(id: number): ServerConsoleStore {
+export function getServerConsoleStore(id: number, config: ConfigGlobal): ServerConsoleStore {
 	const store = map.get(id)
 	if (store) {
 		return store
 	}
-	return createServerConsoleStore(id)
+	return createServerConsoleStore(id, config)
 }
