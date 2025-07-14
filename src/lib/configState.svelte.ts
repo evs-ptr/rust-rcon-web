@@ -1,81 +1,28 @@
-import { browser } from '$app/environment'
 import { getContext, setContext } from 'svelte'
-import { deleteFromStorage, getFromStorage, saveToStorage } from './storage'
+import { StorageSyncedState } from './storage-synced-state.svelte'
 
 const STORAGE_KEY = 'vc1_global_state'
 const DEFAULT_CONTEXT_KEY = 'configState'
-const DEBOUNCE_SAVE_TIMEOUT = 200
 
-export class ConfigState {
+type ConfigStateJson = {
+	iKnow: boolean
+}
+
+export class ConfigState extends StorageSyncedState {
 	iKnow: boolean = $state(false)
 
-	private saveTimeout: ReturnType<typeof setTimeout> | null = $state(null)
-
 	constructor() {
-		if (browser) {
-			window.addEventListener('storage', this.onStorageChange)
-			window.addEventListener('pagehide', this.forceSave)
+		super(STORAGE_KEY)
+		this.load()
+	}
+
+	fromJSON(json: object) {
+		if ('iKnow' in json && typeof json.iKnow === 'boolean') {
+			this.iKnow = json.iKnow
 		}
 	}
 
-	load() {
-		this.resetToDefault()
-		const obj = getFromStorage<ReturnType<typeof this.toJSON>>(STORAGE_KEY)
-		if (obj) {
-			this.iKnow = obj.iKnow
-		}
-	}
-
-	delete() {
-		if (this.saveTimeout) {
-			clearTimeout(this.saveTimeout)
-			this.saveTimeout = null
-		}
-		deleteFromStorage(STORAGE_KEY)
-	}
-
-	destroy() {
-		if (browser) {
-			window.removeEventListener('storage', this.onStorageChange)
-			window.removeEventListener('pagehide', this.forceSave)
-		}
-		this.forceSave()
-	}
-
-	resetToDefault() {
-		this.iKnow = false
-	}
-
-	save() {
-		if (this.saveTimeout) {
-			clearTimeout(this.saveTimeout)
-		}
-
-		this.saveTimeout = window.setTimeout(() => {
-			this.saveTimeout = null
-			this._save()
-		}, DEBOUNCE_SAVE_TIMEOUT)
-	}
-
-	private _save() {
-		saveToStorage(STORAGE_KEY, this)
-	}
-
-	private onStorageChange = (event: StorageEvent) => {
-		if (event.key === STORAGE_KEY) {
-			this.load()
-		}
-	}
-
-	private forceSave = () => {
-		if (this.saveTimeout) {
-			clearTimeout(this.saveTimeout)
-			this.saveTimeout = null
-		}
-		this._save()
-	}
-
-	toJSON() {
+	toJSON(): ConfigStateJson {
 		return {
 			iKnow: this.iKnow,
 		}
@@ -84,7 +31,6 @@ export class ConfigState {
 
 export function setConfigStateContext() {
 	const configState = new ConfigState()
-	configState.load()
 	setContext<ConfigState>(DEFAULT_CONTEXT_KEY, configState)
 	return configState
 }
