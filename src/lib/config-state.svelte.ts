@@ -5,10 +5,12 @@ const STORAGE_KEY = 'vc1_global_state'
 const DEFAULT_CONTEXT_KEY = 'configState'
 
 type ConfigStateJson = {
+	version: number
 	iKnow: boolean
 }
 
 export class ConfigState extends StorageSyncedState {
+	version: number = 1
 	iKnow: boolean = $state(false)
 
 	constructor() {
@@ -17,6 +19,9 @@ export class ConfigState extends StorageSyncedState {
 	}
 
 	fromJSON(json: object) {
+		if ('version' in json && typeof json.version === 'number') {
+			this.version = json.version
+		}
 		if ('iKnow' in json && typeof json.iKnow === 'boolean') {
 			this.iKnow = json.iKnow
 		}
@@ -24,6 +29,7 @@ export class ConfigState extends StorageSyncedState {
 
 	toJSON(): ConfigStateJson {
 		return {
+			version: this.version,
 			iKnow: this.iKnow,
 		}
 	}
