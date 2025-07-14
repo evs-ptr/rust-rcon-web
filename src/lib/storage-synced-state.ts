@@ -4,7 +4,7 @@ import { deleteFromStorage, getFromStorage, saveToStorage } from './storage'
 const DEBOUNCE_SAVE_TIMEOUT = 300
 
 export abstract class StorageSyncedState {
-	private saveTimeout: ReturnType<typeof setTimeout> | null = $state(null)
+	private saveTimeout: ReturnType<typeof setTimeout> | null = null
 	private storageKey: string
 
 	constructor(storageKey: string) {
@@ -20,7 +20,10 @@ export abstract class StorageSyncedState {
 			window.removeEventListener('storage', this.onStorageChange)
 			window.removeEventListener('pagehide', this.forceSave)
 		}
-		this.forceSave()
+
+		if (this.saveTimeout) {
+			this.forceSave()
+		}
 	}
 
 	private onStorageChange = (event: StorageEvent) => {

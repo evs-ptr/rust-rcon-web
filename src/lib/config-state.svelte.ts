@@ -1,5 +1,5 @@
 import { getContext, setContext } from 'svelte'
-import { StorageSyncedState } from './storage-synced-state.svelte'
+import { StorageSyncedState } from './storage-synced-state'
 
 const STORAGE_KEY = 'vc1_global_state'
 const DEFAULT_CONTEXT_KEY = 'configState'
