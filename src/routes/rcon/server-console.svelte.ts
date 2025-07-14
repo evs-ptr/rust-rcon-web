@@ -57,10 +57,38 @@ export class ServerConsoleStore {
 		this.config = config
 	}
 
+	private clampMessagesIfNeeded(willBeAddedCount: number) {
+		if (!this.config.consoleHistoryClampEnable) {
+			return
+		}
+
+		const length = this.messages.length
+
+		const percentile = this.config.consoleHistoryClamp * 0.1 // 10%
+
+		if (length + willBeAddedCount < this.config.consoleHistoryClamp + percentile) {
+			return
+		}
+
+		const toRemove = length - this.config.consoleHistoryClamp + willBeAddedCount
+
+		this.messages.splice(0, toRemove)
+	}
+
+	private pushMessage(msg: ServerConsoleMessage) {
+		this.clampMessagesIfNeeded(1)
+		this.messages.push(msg)
+	}
+
+	private pushMessages(msgs: ServerConsoleMessage[]) {
+		this.clampMessagesIfNeeded(msgs.length)
+		this.messages.push(...msgs)
+	}
+
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
 		const timestamp = new Date()
 		const msg = new ServerConsoleMessage(message, type, consoleType, timestamp)
-		this.messages.push(msg)
+		this.pushMessage(msg)
 		return msg
 	}
 
@@ -90,19 +118,19 @@ export class ServerConsoleStore {
 
 	addMessage(message: CommandResponse): ServerConsoleMessage {
 		const msg = this.parseMessage(message)
-		this.messages.push(msg)
+		this.pushMessage(msg)
 		return msg
 	}
 
 	addHistoryMessage(message: HistoryMessage) {
 		const msg = this.parseHistoryMessage(message)
-		this.messages.push(msg)
+		this.pushMessage(msg)
 		return msg
 	}
 
 	addChatMessage(message: ChatEntry): ServerConsoleMessage {
 		const msg = this.parseChatMessage(message)
-		this.messages.push(msg)
+		this.pushMessage(msg)
 		return msg
 	}
 
@@ -140,7 +168,7 @@ export class ServerConsoleStore {
 				`chat.tail ${this.config.consoleChatHistoryFetch}`
 			)
 			if (!responseChat) {
-				this.messages.push(...junkyard)
+				this.pushMessages(junkyard)
 				this.isPopulatedConsole = true
 				console.error('Failed to get chat.tail')
 				return // TODO: handle error
@@ -154,7 +182,7 @@ export class ServerConsoleStore {
 			}
 		}
 
-		this.messages.push(...junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
+		this.pushMessages(junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
 
 		this.isPopulatedConsole = true
 	}

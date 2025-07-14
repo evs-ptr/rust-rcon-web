@@ -7,6 +7,7 @@ const DEFAULT_CONTEXT_KEY = 'configGlobal'
 type ConfigGlobalJson = {
 	version: number
 	consoleHistoryFetch: number
+	consoleHistoryClampEnable: boolean
 	consoleHistoryClamp: number
 	consoleChatInclude: boolean
 	consoleChatHistoryFetch: number
@@ -15,8 +16,10 @@ type ConfigGlobalJson = {
 export class ConfigGlobal extends StorageSynced {
 	version: number = 1
 
-	consoleHistoryFetch: number = 300
-	consoleHistoryClamp: number = 3_000
+	consoleHistoryFetch: number = 400
+
+	consoleHistoryClampEnable: boolean = true
+	consoleHistoryClamp: number = 10_000
 
 	consoleChatInclude: boolean = true
 	consoleChatHistoryFetch: number = 90
@@ -33,6 +36,9 @@ export class ConfigGlobal extends StorageSynced {
 		if ('consoleHistoryFetch' in json && typeof json.consoleHistoryFetch === 'number') {
 			this.consoleHistoryFetch = json.consoleHistoryFetch
 		}
+		if ('consoleHistoryClampEnable' in json && typeof json.consoleHistoryClampEnable === 'boolean') {
+			this.consoleHistoryClampEnable = json.consoleHistoryClampEnable
+		}
 		if ('consoleHistoryClamp' in json && typeof json.consoleHistoryClamp === 'number') {
 			this.consoleHistoryClamp = json.consoleHistoryClamp
 		}
@@ -48,6 +54,7 @@ export class ConfigGlobal extends StorageSynced {
 		return {
 			version: this.version,
 			consoleHistoryFetch: this.consoleHistoryFetch,
+			consoleHistoryClampEnable: this.consoleHistoryClampEnable,
 			consoleHistoryClamp: this.consoleHistoryClamp,
 			consoleChatInclude: this.consoleChatInclude,
 			consoleChatHistoryFetch: this.consoleChatHistoryFetch,
