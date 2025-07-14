@@ -25,7 +25,7 @@
 <div class="flex min-h-screen flex-col">
 	<Header />
 
-	<main class="container mx-auto flex flex-1 flex-col overflow-clip px-4 py-4 sm:px-8 lg:px-20">
+	<main class="container mx-auto flex flex-1 flex-col overflow-clip px-2 py-4 sm:px-4 lg:px-8">
 		{@render children()}
 	</main>
 
