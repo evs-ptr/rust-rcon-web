@@ -7,6 +7,7 @@
 	import { Label } from '$lib/components/ui/label/index.js'
 	import Loader2Icon from '@lucide/svelte/icons/loader-2'
 	import type { RustServer } from './rust-server.svelte.ts'
+	import { getConfigStateContext } from '$lib/configState.svelte'
 
 	interface Props {
 		server: RustServer
@@ -14,12 +15,13 @@
 
 	let { server }: Props = $props()
 
+	const configState = getConfigStateContext()
+
 	let form = $state({
 		ipPortInvalid: false,
 		passwordInvalid: false,
 		error: '',
 		isAwaitingResponse: false,
-		iKnow: false, // TODO: to config
 	})
 
 	let isIpIsLocal: boolean = $derived.by(() => {
@@ -52,7 +54,7 @@
 			!!server.ipPort &&
 			page.url.protocol !== 'http:' &&
 			!server.useSecureWebSocket &&
-			!form.iKnow
+			!configState.iKnow
 	)
 
 	function validate() {
@@ -134,7 +136,8 @@
 							type="button"
 							class="cursor-pointer underline"
 							onclick={() => {
-								form.iKnow = true
+								configState.iKnow = true
+								configState.save()
 							}}>I know, I know</button
 						>
 					</p>
