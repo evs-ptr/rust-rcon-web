@@ -3,7 +3,7 @@ import { deleteFromStorage, getFromStorage, saveToStorage } from './storage'
 
 const DEBOUNCE_SAVE_TIMEOUT = 300
 
-export abstract class StorageSyncedState {
+export abstract class StorageSynced {
 	private saveTimeout: ReturnType<typeof setTimeout> | null = null
 	private storageKey: string
 

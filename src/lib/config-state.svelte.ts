@@ -1,5 +1,5 @@
 import { getContext, setContext } from 'svelte'
-import { StorageSyncedState } from './storage-synced-state'
+import { StorageSynced } from './storage-synced'
 
 const STORAGE_KEY = 'vc1_global_state'
 const DEFAULT_CONTEXT_KEY = 'configState'
@@ -9,7 +9,7 @@ type ConfigStateJson = {
 	iKnow: boolean
 }
 
-export class ConfigState extends StorageSyncedState {
+export class ConfigState extends StorageSynced {
 	version: number = 1
 	iKnow: boolean = $state(false)
 

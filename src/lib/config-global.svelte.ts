@@ -1,5 +1,5 @@
 import { getContext, setContext } from 'svelte'
-import { StorageSyncedState } from './storage-synced-state'
+import { StorageSynced } from './storage-synced'
 
 const STORAGE_KEY = 'vc1_global_config'
 const DEFAULT_CONTEXT_KEY = 'configGlobal'
@@ -12,7 +12,7 @@ type ConfigGlobalJson = {
 	consoleChatHistoryFetch: number
 }
 
-export class ConfigGlobal extends StorageSyncedState {
+export class ConfigGlobal extends StorageSynced {
 	version: number = 1
 
 	consoleHistoryFetch: number = 300
