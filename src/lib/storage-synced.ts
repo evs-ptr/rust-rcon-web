@@ -11,18 +11,18 @@ export abstract class StorageSynced {
 		this.storageKey = storageKey
 		if (browser) {
 			window.addEventListener('storage', this.onStorageChange)
-			window.addEventListener('pagehide', this.forceSave)
+			window.addEventListener('pagehide', this.forceSaveIfNeeded)
 		}
 	}
 
 	destroy() {
 		if (browser) {
 			window.removeEventListener('storage', this.onStorageChange)
-			window.removeEventListener('pagehide', this.forceSave)
+			window.removeEventListener('pagehide', this.forceSaveIfNeeded)
 		}
 
 		if (this.saveTimeout) {
-			this.forceSave()
+			this.forceSaveIfNeeded()
 		}
 	}
 
@@ -32,12 +32,12 @@ export abstract class StorageSynced {
 		}
 	}
 
-	private forceSave = () => {
+	private forceSaveIfNeeded = () => {
 		if (this.saveTimeout) {
 			clearTimeout(this.saveTimeout)
 			this.saveTimeout = null
+			this._save()
 		}
-		this._save()
 	}
 
 	save() {
