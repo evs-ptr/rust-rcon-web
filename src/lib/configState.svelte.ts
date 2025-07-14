@@ -19,6 +19,7 @@ export class ConfigState {
 	}
 
 	load() {
+		this.resetToDefault()
 		const obj = getFromStorage<ReturnType<typeof this.toJSON>>(STORAGE_KEY)
 		if (obj) {
 			this.iKnow = obj.iKnow
@@ -39,6 +40,10 @@ export class ConfigState {
 			window.removeEventListener('pagehide', this.forceSave)
 		}
 		this.forceSave()
+	}
+
+	resetToDefault() {
+		this.iKnow = false
 	}
 
 	save() {
