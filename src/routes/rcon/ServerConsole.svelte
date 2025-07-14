@@ -57,6 +57,17 @@
 		}
 	}
 
+	$effect(() => {
+		if (consoleContainer && store.lastContainerHeight) {
+			consoleContainer.style.height = store.lastContainerHeight
+		}
+		return () => {
+			if (consoleContainer?.style.height) {
+				store.lastContainerHeight = consoleContainer.style.height
+			}
+		}
+	})
+
 	$effect.pre(() => {
 		// This is needed to make sure that the effect is triggered on messages change
 		// eslint-disable-next-line @typescript-eslint/no-unused-expressions

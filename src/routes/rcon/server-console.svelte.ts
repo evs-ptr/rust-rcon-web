@@ -48,6 +48,7 @@ export class ServerConsoleStore {
 
 	public lastScrollTop: number | null = null
 	public lastShouldScroll: boolean | null = null
+	public lastContainerHeight: string | null = null
 
 	private isPopulatedConsole: boolean = false
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
