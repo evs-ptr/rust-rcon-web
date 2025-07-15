@@ -1,11 +1,10 @@
 <script lang="ts">
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js'
 	import { buttonVariants } from '$lib/components/ui/button/index.js'
-	import { Input } from '$lib/components/ui/input/index.js'
-	import { Label } from '$lib/components/ui/label/index.js'
 	import * as Sheet from '$lib/components/ui/sheet/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import SettingsIcon from '@lucide/svelte/icons/settings'
+	import SettingsInput from './SettingsInput.svelte'
 
 	const config = getConfigGlobalContext()
 
@@ -29,10 +28,12 @@
 			<Sheet.Title>Global Settings</Sheet.Title>
 		</Sheet.Header>
 		<div class="grid flex-1 auto-rows-min gap-6 overflow-scroll px-4">
-			<div class="grid gap-3">
-				<Label for="name" class="text-right">Name</Label>
-				<Input id="name" type="number" bind:value={config.consoleHistoryClamp} />
-			</div>
+			<SettingsInput
+				bind:value={config.consoleHistoryClamp}
+				validator={(val) => Number.isInteger(val) && val > 0}
+				id="chc"
+				label="Console History Clamp"
+			/>
 		</div>
 		<Sheet.Footer class="flex flex-col gap-4 sm:flex-row sm:gap-2">
 			<AlertDialog.Root bind:open={alertResetOpen}>
