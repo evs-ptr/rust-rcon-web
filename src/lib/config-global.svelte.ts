@@ -16,13 +16,13 @@ type ConfigGlobalJson = {
 export class ConfigGlobal extends StorageSynced {
 	version: number = 1
 
-	consoleHistoryFetch: number = 400
+	consoleHistoryFetch: number = $state(400)
 
-	consoleHistoryClampEnable: boolean = true
-	consoleHistoryClamp: number = 10_000
+	consoleHistoryClampEnable: boolean = $state(true)
+	consoleHistoryClamp: number = $state(10_000)
 
-	consoleChatInclude: boolean = true
-	consoleChatHistoryFetch: number = 90
+	consoleChatInclude: boolean = $state(true)
+	consoleChatHistoryFetch: number = $state(90)
 
 	constructor() {
 		super(STORAGE_KEY)
