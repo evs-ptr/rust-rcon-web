@@ -1,10 +1,12 @@
 <script lang="ts">
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js'
 	import { buttonVariants } from '$lib/components/ui/button/index.js'
+	import { Separator } from '$lib/components/ui/separator/index.js'
 	import * as Sheet from '$lib/components/ui/sheet/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import SettingsIcon from '@lucide/svelte/icons/settings'
 	import SettingsInput from './SettingsInput.svelte'
+	import SettingsSwitchInput from './SettingsSwitchInput.svelte'
 
 	const config = getConfigGlobalContext()
 
@@ -38,11 +40,27 @@
 				id="chf"
 				label="Console History Fetch"
 			/>
+
+			<Separator />
+
+			<SettingsSwitchInput
+				bind:value={config.consoleChatInclude}
+				id="cci"
+				label="Console include Chat related"
+			/>
 			<SettingsInput
 				bind:value={config.consoleChatHistoryFetch}
 				validator={commonValValidCheck}
 				id="cchf"
 				label="Console Chat History Fetch"
+			/>
+
+			<Separator />
+
+			<SettingsSwitchInput
+				bind:value={config.consoleHistoryClampEnable}
+				id="chce"
+				label="Console History Clamp Enable"
 			/>
 			<SettingsInput
 				bind:value={config.consoleHistoryClamp}
