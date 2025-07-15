@@ -16,6 +16,10 @@
 		config.resetToDefault()
 	}
 
+	function commonValValidCheck(val: number) {
+		return Number.isInteger(val) && val > 0
+	}
+
 	let alertResetOpen: boolean = $state(false)
 </script>
 
@@ -29,8 +33,20 @@
 		</Sheet.Header>
 		<div class="grid flex-1 auto-rows-min gap-6 overflow-scroll px-4">
 			<SettingsInput
+				bind:value={config.consoleHistoryFetch}
+				validator={commonValValidCheck}
+				id="chf"
+				label="Console History Fetch"
+			/>
+			<SettingsInput
+				bind:value={config.consoleChatHistoryFetch}
+				validator={commonValValidCheck}
+				id="cchf"
+				label="Console Chat History Fetch"
+			/>
+			<SettingsInput
 				bind:value={config.consoleHistoryClamp}
-				validator={(val) => Number.isInteger(val) && val > 0}
+				validator={commonValValidCheck}
 				id="chc"
 				label="Console History Clamp"
 			/>
