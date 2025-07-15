@@ -26,7 +26,6 @@ export class ConfigGlobal extends StorageSynced {
 
 	constructor() {
 		super(STORAGE_KEY)
-		this.load()
 	}
 
 	fromJSON(json: object) {
@@ -60,10 +59,17 @@ export class ConfigGlobal extends StorageSynced {
 			consoleChatHistoryFetch: this.consoleChatHistoryFetch,
 		}
 	}
+
+	resetToDefault() {
+		const def = new ConfigGlobal()
+		const json = def.toJSON()
+		this.fromJSON(json)
+	}
 }
 
 export function setConfigGlobalContext() {
 	const configGlobal = new ConfigGlobal()
+	configGlobal.load()
 	setContext<ConfigGlobal>(DEFAULT_CONTEXT_KEY, configGlobal)
 	return configGlobal
 }
