@@ -3,6 +3,7 @@ import type { CommandResponse } from './rust-rcon.types'
 
 export class RustServer {
 	private static idCounter = 0
+	public readonly uuid: string
 	public readonly id: number
 
 	public ipPort: string = $state('')
@@ -14,6 +15,7 @@ export class RustServer {
 	private rcon: RustRconConnection | null = $state(null)
 
 	constructor() {
+		this.uuid = crypto.randomUUID()
 		this.id = RustServer.idCounter++
 	}
 
