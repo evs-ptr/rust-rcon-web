@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { Input } from '$lib/components/ui/input/index.js'
+	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import { tick } from 'svelte'
 	import type { RustServer } from './rust-server.svelte'
 	import {
@@ -9,7 +10,6 @@
 		type ServerConsoleStore,
 	} from './server-console.svelte'
 	import ServerConsoleEntry from './ServerConsoleEntry.svelte'
-	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 
 	interface Props {
 		server: RustServer
@@ -159,9 +159,22 @@
 		class="bg-card flex h-[600px] resize-y flex-col overflow-x-scroll overflow-y-scroll overscroll-contain rounded-md border"
 	>
 		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
-			{#each store.messages as message (message.id)}
-				<ServerConsoleEntry {message} />
-			{/each}
+			{#if !store.isPopulatedConsole}
+				{@const skeletonClass = 'bg-muted h-4 animate-pulse rounded-lg mt-2.5'}
+				<div class={[skeletonClass, 'w-1/3']}></div>
+				<div class={[skeletonClass, 'w-1/2']}></div>
+				<div class={[skeletonClass, 'w-1/4']}></div>
+				<div class={[skeletonClass, 'w-2/3']}></div>
+				<div class={[skeletonClass, 'w-3/4']}></div>
+				<div class={[skeletonClass, 'w-1/2']}></div>
+				<div class={[skeletonClass, 'w-1/5']}></div>
+				<div class={[skeletonClass, 'w-5/6']}></div>
+				<div class={[skeletonClass, 'w-2/5']}></div>
+			{:else}
+				{#each store.messages as message (message.id)}
+					<ServerConsoleEntry {message} />
+				{/each}
+			{/if}
 		</div>
 	</div>
 	<div>

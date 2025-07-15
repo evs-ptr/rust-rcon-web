@@ -50,7 +50,7 @@ export class ServerConsoleStore {
 	public lastShouldScroll: boolean | null = null
 	public lastContainerHeight: string | null = null
 
-	private isPopulatedConsole: boolean = false
+	public isPopulatedConsole: boolean = $state(false)
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
 
