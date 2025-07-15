@@ -110,7 +110,7 @@ export class RustRconConnection extends WebSocketWrapper {
 		} satisfies CommandSend
 	}
 
-	async sendCommandGetResponse(command: string): Promise<CommandResponse> {
+	sendCommandGetResponse(command: string): Promise<CommandResponse> {
 		const msgId = this.takeNextMsgId()
 
 		const promise1 = new Promise((resolve, reject) => {
