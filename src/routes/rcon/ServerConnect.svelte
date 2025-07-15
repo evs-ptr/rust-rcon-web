@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state'
 	import { Button } from '$lib/components/ui/button/index.js'
-	import * as Card from '$lib/components/ui/card/index.js'
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js'
 	import { Input } from '$lib/components/ui/input/index.js'
 	import { Label } from '$lib/components/ui/label/index.js'
+	import { getConfigStateContext } from '$lib/config-state.svelte'
 	import Loader2Icon from '@lucide/svelte/icons/loader-2'
 	import type { RustServer } from './rust-server.svelte.ts'
-	import { getConfigStateContext } from '$lib/config-state.svelte'
 
 	interface Props {
 		server: RustServer
@@ -102,82 +101,77 @@
 	}
 </script>
 
-<Card.Root class="w-full max-w-sm self-center">
-	<Card.Header>
-		<Card.Title>Connect to Server</Card.Title>
-		<Card.Description>Enter your server details to connect via RCon.</Card.Description>
-	</Card.Header>
-	<Card.Content>
-		<form onsubmit={tryConnect} class="flex flex-col gap-6">
-			<div class="grid gap-2">
-				<Label for="server-address">Server Address</Label>
-				<Input
-					class={form.ipPortInvalid ? 'ring-destructive ring-2' : ''}
-					id="server-address"
-					type="text"
-					placeholder="IP:Port"
-					autocomplete="off"
-					bind:value={server.ipPort}
-					oninput={() => (form.ipPortInvalid = false)}
-					disabled={form.isAwaitingResponse}
-				/>
+<div class="flex w-full max-w-sm flex-col gap-6 self-center text-center">
+	<div class="flex flex-col gap-2">
+		<h1 class="text-3xl font-bold">Connect to Server</h1>
+		<p class="text-muted-foreground text-balance">Enter your server details to connect via RCon.</p>
+	</div>
+	<form onsubmit={tryConnect} class="flex flex-col gap-6 text-left">
+		<div class="grid gap-2">
+			<Label for="server-address">Server Address</Label>
+			<Input
+				class={form.ipPortInvalid ? 'ring-destructive ring-2' : ''}
+				id="server-address"
+				type="text"
+				placeholder="IP:Port"
+				autocomplete="off"
+				bind:value={server.ipPort}
+				oninput={() => (form.ipPortInvalid = false)}
+				disabled={form.isAwaitingResponse}
+			/>
 
-				{#if showMixedContentWarning}
-					<p class="text-muted-foreground text-xs">
-						Your browser may block insecure WebSocket (<code>ws://</code>) connections when trying to connect
-						to remote server.
-					</p>
-					<p class="text-muted-foreground text-xs">
-						You should use a secure WebSocket (<code>wss://</code>) if your server has it setup. (X509 cert,
-						rust switches)
-					</p>
-					<p class="text-muted-foreground text-xs">
-						<button
-							type="button"
-							class="cursor-pointer underline"
-							onclick={() => {
-								configState.iKnow = true
-								configState.save()
-							}}>I know, I know</button
-						>
-					</p>
-				{/if}
-			</div>
-
-			<div class="grid gap-2">
-				<Label for="server-password">RCON Password</Label>
-				<Input
-					class={form.passwordInvalid ? 'ring-destructive ring-2' : ''}
-					id="server-password"
-					type="password"
-					placeholder="Password"
-					autocomplete="off"
-					bind:value={server.password}
-					oninput={() => (form.passwordInvalid = false)}
-					disabled={form.isAwaitingResponse}
-				/>
-			</div>
-
-			<div class="flex items-start gap-3">
-				<Checkbox
-					id="use-secure"
-					bind:checked={server.useSecureWebSocket}
-					disabled={form.isAwaitingResponse}
-				/>
-				<Label for="use-secure">Use secure (wss://)</Label>
-			</div>
-
-			{#if form.error}
-				<p class="text-destructive text-sm">{form.error}</p>
+			{#if showMixedContentWarning}
+				<p class="text-muted-foreground text-xs">
+					Your browser may block insecure WebSocket (<code>ws://</code>) connections when trying to connect to
+					remote server.
+				</p>
+				<p class="text-muted-foreground text-xs">
+					You should use a secure WebSocket (<code>wss://</code>) if your server has it setup. (X509 cert,
+					rust switches)
+				</p>
+				<p class="text-muted-foreground text-xs">
+					<button
+						type="button"
+						class="cursor-pointer underline"
+						onclick={() => {
+							configState.iKnow = true
+							configState.save()
+						}}>I know, I know</button
+					>
+				</p>
 			{/if}
+		</div>
 
-			<Button type="submit" class="w-full" disabled={form.isAwaitingResponse}>
-				{#if form.isAwaitingResponse}
-					<Loader2Icon class="animate-spin" />
-				{:else}
-					Connect
-				{/if}
-			</Button>
-		</form>
-	</Card.Content>
-</Card.Root>
+		<div class="grid gap-2">
+			<Label for="server-password">RCON Password</Label>
+			<Input
+				class={form.passwordInvalid ? 'ring-destructive ring-2' : ''}
+				id="server-password"
+				type="password"
+				placeholder="Password"
+				autocomplete="off"
+				bind:value={server.password}
+				oninput={() => (form.passwordInvalid = false)}
+				disabled={form.isAwaitingResponse}
+			/>
+		</div>
+
+		<div class="flex items-start gap-3">
+			<Checkbox id="use-secure" bind:checked={server.useSecureWebSocket} disabled={form.isAwaitingResponse} />
+			<Label for="use-secure">Use secure (wss://)</Label>
+		</div>
+
+		{#if form.error}
+			<p class="text-destructive text-sm">{form.error}</p>
+		{/if}
+
+		<Button type="submit" class="w-full" disabled={form.isAwaitingResponse}>
+			{#if form.isAwaitingResponse}
+				<Loader2Icon class="animate-spin" />
+			{:else}
+				Connect
+			{/if}
+		</Button>
+	</form>
+</div>
+
