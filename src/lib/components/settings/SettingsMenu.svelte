@@ -82,7 +82,7 @@
 			<div class="grid gap-8">
 				<h3 class="text-lg font-medium">History Limiting</h3>
 				<SettingsSwitchInput
-					bind:value={config.consoleHistoryClampEnable}
+					bind:value={config.consoleHistoryLimitEnable}
 					id="enable-history-clamp"
 					label="Enable History Limit"
 				>
@@ -91,7 +91,7 @@
 					{/snippet}
 				</SettingsSwitchInput>
 				<SettingsInput
-					bind:value={config.consoleHistoryClamp}
+					bind:value={config.consoleHistoryLimit}
 					validator={commonValValidCheck}
 					id="history-clamp-value"
 					label="History Limit"

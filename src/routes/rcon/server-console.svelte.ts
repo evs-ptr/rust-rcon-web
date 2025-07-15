@@ -59,19 +59,19 @@ export class ServerConsoleStore {
 	}
 
 	private clampMessagesIfNeeded(willBeAddedCount: number) {
-		if (!this.config.consoleHistoryClampEnable) {
+		if (!this.config.consoleHistoryLimitEnable) {
 			return
 		}
 
 		const length = this.messages.length
 
-		const percentile = this.config.consoleHistoryClamp * 0.1 // 10%
+		const percentile = this.config.consoleHistoryLimit * 0.1 // 10%
 
-		if (length + willBeAddedCount < this.config.consoleHistoryClamp + percentile) {
+		if (length + willBeAddedCount < this.config.consoleHistoryLimit + percentile) {
 			return
 		}
 
-		const toRemove = length - this.config.consoleHistoryClamp + willBeAddedCount
+		const toRemove = length - this.config.consoleHistoryLimit + willBeAddedCount
 
 		this.messages.splice(0, toRemove)
 	}

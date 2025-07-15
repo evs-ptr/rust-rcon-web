@@ -7,8 +7,8 @@ const DEFAULT_CONTEXT_KEY = 'configGlobal'
 type ConfigGlobalJson = {
 	version: number
 	consoleHistoryFetch: number
-	consoleHistoryClampEnable: boolean
-	consoleHistoryClamp: number
+	consoleHistoryLimitEnable: boolean
+	consoleHistoryLimit: number
 	consoleChatInclude: boolean
 	consoleChatHistoryFetch: number
 }
@@ -18,8 +18,8 @@ export class ConfigGlobal extends StorageSynced {
 
 	consoleHistoryFetch: number = $state(400)
 
-	consoleHistoryClampEnable: boolean = $state(true)
-	consoleHistoryClamp: number = $state(10_000)
+	consoleHistoryLimitEnable: boolean = $state(true)
+	consoleHistoryLimit: number = $state(10_000)
 
 	consoleChatInclude: boolean = $state(true)
 	consoleChatHistoryFetch: number = $state(90)
@@ -35,11 +35,11 @@ export class ConfigGlobal extends StorageSynced {
 		if ('consoleHistoryFetch' in json && typeof json.consoleHistoryFetch === 'number') {
 			this.consoleHistoryFetch = json.consoleHistoryFetch
 		}
-		if ('consoleHistoryClampEnable' in json && typeof json.consoleHistoryClampEnable === 'boolean') {
-			this.consoleHistoryClampEnable = json.consoleHistoryClampEnable
+		if ('consoleHistoryLimitEnable' in json && typeof json.consoleHistoryLimitEnable === 'boolean') {
+			this.consoleHistoryLimitEnable = json.consoleHistoryLimitEnable
 		}
-		if ('consoleHistoryClamp' in json && typeof json.consoleHistoryClamp === 'number') {
-			this.consoleHistoryClamp = json.consoleHistoryClamp
+		if ('consoleHistoryLimit' in json && typeof json.consoleHistoryLimit === 'number') {
+			this.consoleHistoryLimit = json.consoleHistoryLimit
 		}
 		if ('consoleChatInclude' in json && typeof json.consoleChatInclude === 'boolean') {
 			this.consoleChatInclude = json.consoleChatInclude
@@ -53,8 +53,8 @@ export class ConfigGlobal extends StorageSynced {
 		return {
 			version: this.version,
 			consoleHistoryFetch: this.consoleHistoryFetch,
-			consoleHistoryClampEnable: this.consoleHistoryClampEnable,
-			consoleHistoryClamp: this.consoleHistoryClamp,
+			consoleHistoryLimitEnable: this.consoleHistoryLimitEnable,
+			consoleHistoryLimit: this.consoleHistoryLimit,
 			consoleChatInclude: this.consoleChatInclude,
 			consoleChatHistoryFetch: this.consoleChatHistoryFetch,
 		}
