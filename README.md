@@ -14,7 +14,7 @@ Check out the live version: [rust-rcon-web.evs-ptr.workers.dev](https://rust-rco
 - **Command History:** Easily navigate and re-execute previous commands.
 - **Multi-Server Management:** Save and switch between multiple Rust servers effortlessly.
 - **Resilient Reconnect:** Automatic reconnection with exponential back-off ensures you stay connected.
-- **Secure by Default:** Supports secure WebSocket (`wss://`) connections and never stores credentials in plain text.
+- **Secure by Default:** Supports secure WebSocket (`wss://`) connections and never stores credentials unless specified.
 - **Open-Source:** MIT licensed and built with a modern, open-source stack.
 
 ## Technologies Used

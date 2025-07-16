@@ -162,7 +162,7 @@
 				bind:checked={server.configServer.savePassword}
 				disabled={form.isAwaitingResponse}
 			/>
-			<Label for="save-password">Save Password</Label>
+			<Label for="save-password">Save Password (inside browser)</Label>
 		</div>
 
 		<div class="flex items-start gap-3">
