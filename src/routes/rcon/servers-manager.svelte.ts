@@ -61,6 +61,13 @@ export class ServersManager {
 		}
 	}
 
+	destroy() {
+		for (const server of this.servers) {
+			server.cleanUp()
+			server.configServer.destroy()
+		}
+	}
+
 	private static genUUID(): string {
 		try {
 			return crypto.randomUUID()

@@ -11,11 +11,12 @@
 
 	let { children } = $props()
 
-	setServersManagerContext()
+	const serversManager = setServersManagerContext()
 	const configState = setConfigStateContext()
 	const configGlobal = setConfigGlobalContext()
 
 	onDestroy(() => {
+		serversManager.destroy()
 		configState.destroy()
 		configGlobal.destroy()
 	})
