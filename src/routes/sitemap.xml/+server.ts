@@ -4,22 +4,27 @@ export const prerender = true
 
 const SITE_URL = 'https://rust-rcon-web.evs-ptr.workers.dev'
 
-const pages = import.meta.glob('/src/routes/**/+page.svelte')
-const staticPages = Object.keys(pages)
-	.filter((path) => !path.includes('['))
-	.map((path) => {
-		return path.replace('/src/routes', '').replace('/+page.svelte', '')
-	})
+class SitemapPage {
+	readonly url: string
+	readonly lastmod: string
+
+	constructor(url: string, lastmod: string) {
+		this.url = url
+		this.lastmod = lastmod
+	}
+}
+
+const pages = [new SitemapPage('', '2025-07-16'), new SitemapPage('/rcon', '2025-07-16')]
 
 export const GET: RequestHandler = async () => {
-	const body = render(staticPages)
+	const body = render(pages)
 	const response = new Response(body)
 	response.headers.set('Cache-Control', 'max-age=0, s-maxage=3600')
 	response.headers.set('Content-Type', 'application/xml')
 	return response
 }
 
-function render(staticPages: string[]) {
+function render(staticPages: SitemapPage[]) {
 	return `<?xml version="1.0" encoding="UTF-8" ?>
 <urlset
   xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"
@@ -30,10 +35,10 @@ function render(staticPages: string[]) {
   xmlns:video="https://www.google.com/schemas/sitemap-video/1.1"
 >
 ${staticPages
-	.map((path) => {
+	.map((page) => {
 		return `  <url>
-    <loc>${SITE_URL}${path}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <loc>${SITE_URL}${page.url}</loc>
+    <lastmod>${page.lastmod}</lastmod>
   </url>`
 	})
 	.join('\n')}
