@@ -4,7 +4,6 @@
 	import { Separator } from '$lib/components/ui/separator/index.js'
 	// Lucide icons
 	import ActivityIcon from '@lucide/svelte/icons/activity'
-	import Code2Icon from '@lucide/svelte/icons/code-2'
 	import GithubIcon from '@lucide/svelte/icons/github'
 	import HistoryIcon from '@lucide/svelte/icons/history'
 	import LockIcon from '@lucide/svelte/icons/lock'
