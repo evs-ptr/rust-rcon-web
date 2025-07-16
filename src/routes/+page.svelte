@@ -8,6 +8,7 @@
 	import GithubIcon from '@lucide/svelte/icons/github'
 	import HistoryIcon from '@lucide/svelte/icons/history'
 	import LockIcon from '@lucide/svelte/icons/lock'
+	import MessagesSquareIcon from '@lucide/svelte/icons/messages-square'
 	import PlugIcon from '@lucide/svelte/icons/plug'
 	import RefreshCcwIcon from '@lucide/svelte/icons/refresh-ccw'
 	import ServerIcon from '@lucide/svelte/icons/server'
@@ -73,6 +74,14 @@
 
 		<Card>
 			<CardHeader class="flex flex-row items-center gap-2">
+				<MessagesSquareIcon class="h-5 w-5" />
+				<CardTitle>Integrated Chat</CardTitle>
+			</CardHeader>
+			<CardContent>View in-game chat messages separately from the server log clutter.</CardContent>
+		</Card>
+
+		<Card>
+			<CardHeader class="flex flex-row items-center gap-2">
 				<HistoryIcon class="h-5 w-5" />
 				<CardTitle>Command History</CardTitle>
 			</CardHeader>
@@ -103,14 +112,6 @@
 			<CardContent>
 				Supports <code>wss://</code> and never stores credentials.
 			</CardContent>
-		</Card>
-
-		<Card>
-			<CardHeader class="flex flex-row items-center gap-2">
-				<Code2Icon class="h-5 w-5" />
-				<CardTitle>Open-source</CardTitle>
-			</CardHeader>
-			<CardContent>Built with SvelteKit, Tailwind and Bun – MIT licensed.</CardContent>
 		</Card>
 	</div>
 </section>
