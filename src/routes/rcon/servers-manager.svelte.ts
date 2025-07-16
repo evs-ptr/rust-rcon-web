@@ -38,6 +38,10 @@ export class ServersManager {
 			return
 		}
 
+		identifiers.sort((a, b) => {
+			return this.configState.serversOrderUUID.indexOf(a) - this.configState.serversOrderUUID.indexOf(b)
+		})
+
 		for (const id of identifiers) {
 			try {
 				const config = new ConfigServer(id)
@@ -55,6 +59,7 @@ export class ServersManager {
 	addServer(configServer: ConfigServer): RustServer {
 		const newServer = new RustServer(configServer)
 		this.servers.push(newServer)
+		this.configState.serversOrderUUID.push(newServer.configServer.identifier)
 		return newServer
 	}
 
@@ -78,6 +83,11 @@ export class ServersManager {
 		server.configServer.delete()
 
 		this.servers.splice(index, 1)
+
+		const orderIndex = this.configState.serversOrderUUID.indexOf(server.configServer.identifier)
+		if (orderIndex != -1) {
+			this.configState.serversOrderUUID.splice(orderIndex, 1)
+		}
 	}
 
 	destroy() {
