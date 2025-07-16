@@ -1,14 +1,18 @@
-import devtoolsJson from 'vite-plugin-devtools-json'
-import tailwindcss from '@tailwindcss/vite'
+/// <reference types="vitest" />
 import { sveltekit } from '@sveltejs/kit/vite'
-import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
+import { defineConfig as defineViteConfig, mergeConfig } from 'vite'
+import devtoolsJson from 'vite-plugin-devtools-json'
+import { defineConfig as defineVitestConfig } from 'vitest/config'
 
-export default defineConfig({
+const viteConfig = defineViteConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
+})
+
+const vitestConfig = defineVitestConfig({
 	test: {
 		projects: [
 			{
-				extends: './vite.config.ts',
 				test: {
 					name: 'client',
 					environment: 'browser',
@@ -23,7 +27,6 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: './vite.config.ts',
 				test: {
 					name: 'server',
 					environment: 'node',
@@ -34,3 +37,5 @@ export default defineConfig({
 		],
 	},
 })
+
+export default mergeConfig(viteConfig, vitestConfig)
