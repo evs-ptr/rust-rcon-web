@@ -1,5 +1,6 @@
 import { getContext, setContext } from 'svelte'
 import { RustServer } from './rust-server.svelte'
+import { ConfigServer } from '$lib/config-server.svelte'
 
 export class ServersManager {
 	public readonly servers: RustServer[] = $state([])
@@ -7,12 +8,12 @@ export class ServersManager {
 
 	constructor() {
 		const server = this.addServer()
-		server.ipPort = '127.0.0.1:24247'
 		this.selectedServer = server
 	}
 
 	addServer() {
-		const newServer = new RustServer()
+		const newConfigServer = new ConfigServer(ServersManager.genUUID())
+		const newServer = new RustServer(newConfigServer)
 		this.servers.push(newServer)
 		return newServer
 	}
@@ -28,6 +29,16 @@ export class ServersManager {
 
 		if (this.selectedServer === server) {
 			this.selectedServer = this.servers[index] || null
+		}
+	}
+
+	private static genUUID(): string {
+		try {
+			return crypto.randomUUID()
+		} catch {
+			return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+				(+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
+			)
 		}
 	}
 }

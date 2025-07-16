@@ -7,6 +7,7 @@ type ConfigServerJson = {
 	address: string
 	password: string
 	savePassword: boolean
+	useSecureWebsocket: boolean
 }
 
 export class ConfigServer extends StorageSynced {
@@ -16,6 +17,7 @@ export class ConfigServer extends StorageSynced {
 	address: string = $state('')
 	password: string = $state('') // not saved unless user specified
 	savePassword: boolean = $state(false)
+	useSecureWebsocket: boolean = $state(false)
 
 	constructor(identifier: string) {
 		const key = STORAGE_KEY_PREFIX + identifier
@@ -36,6 +38,9 @@ export class ConfigServer extends StorageSynced {
 		if ('savePassword' in json && typeof json.savePassword === 'boolean') {
 			this.savePassword = json.savePassword
 		}
+		if ('useSecureWebsocket' in json && typeof json.useSecureWebsocket === 'boolean') {
+			this.useSecureWebsocket = json.useSecureWebsocket
+		}
 	}
 
 	toJSON(): ConfigServerJson {
@@ -44,6 +49,7 @@ export class ConfigServer extends StorageSynced {
 			address: this.address,
 			password: this.savePassword ? this.password : '',
 			savePassword: this.savePassword,
+			useSecureWebsocket: this.useSecureWebsocket,
 		}
 	}
 

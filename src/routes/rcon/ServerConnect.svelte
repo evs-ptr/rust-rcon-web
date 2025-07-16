@@ -24,7 +24,7 @@
 	})
 
 	let isIpIsLocal: boolean = $derived.by(() => {
-		const ip = server.ipPort.split(':')[0]
+		const ip = server.configServer.address.split(':')[0]
 		if (ip == 'localhost') {
 			return true
 		}
@@ -50,27 +50,27 @@
 
 	let showMixedContentWarning: boolean = $derived(
 		!isIpIsLocal &&
-			!!server.ipPort &&
+			!!server.configServer.address &&
 			page.url.protocol !== 'http:' &&
-			!server.useSecureWebSocket &&
+			!server.configServer.useSecureWebsocket &&
 			!configState.iKnow
 	)
 
 	function validate() {
-		if (!server.ipPort) {
+		if (!server.configServer.address) {
 			form.ipPortInvalid = true
 			form.error = 'Server Address is required.'
 			return false
 		}
 
 		const ipPortRegex = /^[^:]+:\d{1,5}$/
-		if (!ipPortRegex.test(server.ipPort)) {
+		if (!ipPortRegex.test(server.configServer.address)) {
 			form.ipPortInvalid = true
 			form.error = 'Invalid Server Address format. Please use IP:Port.'
 			return false
 		}
 
-		if (!server.password) {
+		if (!server.configServer.password) {
 			form.passwordInvalid = true
 			form.error = 'RCON Password is required.'
 			return false
@@ -115,7 +115,7 @@
 				type="text"
 				placeholder="IP:Port"
 				autocomplete="off"
-				bind:value={server.ipPort}
+				bind:value={server.configServer.address}
 				oninput={() => (form.ipPortInvalid = false)}
 				disabled={form.isAwaitingResponse}
 			/>
@@ -143,21 +143,25 @@
 		</div>
 
 		<div class="grid gap-2">
-			<Label for="server-password">RCON Password</Label>
+			<Label for="server.configServer.password">RCON Password</Label>
 			<Input
 				class={form.passwordInvalid ? 'ring-destructive ring-2' : ''}
-				id="server-password"
+				id="server.configServer.password"
 				type="password"
 				placeholder="Password"
 				autocomplete="off"
-				bind:value={server.password}
+				bind:value={server.configServer.password}
 				oninput={() => (form.passwordInvalid = false)}
 				disabled={form.isAwaitingResponse}
 			/>
 		</div>
 
 		<div class="flex items-start gap-3">
-			<Checkbox id="use-secure" bind:checked={server.useSecureWebSocket} disabled={form.isAwaitingResponse} />
+			<Checkbox
+				id="use-secure"
+				bind:checked={server.configServer.useSecureWebsocket}
+				disabled={form.isAwaitingResponse}
+			/>
 			<Label for="use-secure">Use secure (wss://)</Label>
 		</div>
 

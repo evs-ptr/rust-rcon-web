@@ -14,7 +14,6 @@
 
 	function addBlankServer() {
 		const newServer = serversManager.addServer()
-		newServer.ipPort = '127.0.0.1:'
 		switchServer(newServer)
 	}
 
@@ -37,7 +36,7 @@
 			>
 				<!-- TODO: is connected indicator -->
 				<!-- TODO: server name if exists -->
-				<span>{server.ipPort.trim() || '_'}</span>
+				<span>{server.configServer.address.trim() || '_'}</span>
 				<!-- TODO: server fps -->
 			</Button>
 

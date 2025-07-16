@@ -1,27 +1,19 @@
+import type { ConfigServer } from '$lib/config-server.svelte'
 import { RustRconConnection } from './rust-rcon'
 import type { CommandResponse } from './rust-rcon.types'
 
 export class RustServer {
 	private static idCounter = 0
-	public readonly uuid: string
 	public readonly id: number
 
-	public ipPort: string = $state('')
-	public password: string = $state('')
-	public useSecureWebSocket: boolean = $state(false)
+	public readonly configServer: ConfigServer
 
 	public connectionWasEstablished: boolean = $state(false)
 
 	private rcon: RustRconConnection | null = $state(null)
 
-	constructor() {
-		try {
-			this.uuid = crypto.randomUUID()
-		} catch {
-			this.uuid = '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
-				(+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
-			)
-		}
+	constructor(configServer: ConfigServer) {
+		this.configServer = configServer
 		this.id = RustServer.idCounter++
 	}
 
@@ -37,11 +29,11 @@ export class RustServer {
 			return true
 		}
 
-		if (!this.ipPort || !this.password) {
+		if (!this.configServer.address || !this.configServer.password) {
 			return false
 		}
 
-		const url = `${this.useSecureWebSocket ? 'wss' : 'ws'}://${this.ipPort}/${this.password}`
+		const url = `${this.configServer.useSecureWebsocket ? 'wss' : 'ws'}://${this.configServer.address}/${this.configServer.password}`
 
 		try {
 			this.rcon = new RustRconConnection(url)
