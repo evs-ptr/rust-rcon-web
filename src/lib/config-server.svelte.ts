@@ -19,10 +19,32 @@ export class ConfigServer extends StorageSynced {
 	savePassword: boolean = $state(false)
 	useSecureWebsocket: boolean = $state(false)
 
+	private effectCleanup: () => void
+
 	constructor(identifier: string) {
 		const key = STORAGE_KEY_PREFIX + identifier
 		super(key)
 		this.identifier = identifier
+
+		this.effectCleanup = $effect.root(() => {
+			$effect(() => {
+				// listen for changes
+
+				/* eslint-disable @typescript-eslint/no-unused-expressions */
+				this.address
+				this.password
+				this.savePassword
+				this.useSecureWebsocket
+				/* eslint-enable @typescript-eslint/no-unused-expressions */
+
+				this.save()
+			})
+		})
+	}
+
+	override destroy() {
+		this.effectCleanup()
+		super.destroy()
 	}
 
 	fromJSON(json: object) {
@@ -60,6 +82,7 @@ export class ConfigServer extends StorageSynced {
 		const def = new ConfigServer(this.identifier)
 		const json = def.toJSON()
 		this.fromJSON(json)
+		def.destroy()
 
 		if (preserveCredentials) {
 			this.address = addr
