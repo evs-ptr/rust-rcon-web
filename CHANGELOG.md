@@ -4,6 +4,8 @@
 
 - Save/load logic of servers were implemented
 - Emojis++ for empty server
+- Servers order is now preserved between sessions
+- Selected server is preserved too
 
 ## 2025-07-15 - Jul 15
 
