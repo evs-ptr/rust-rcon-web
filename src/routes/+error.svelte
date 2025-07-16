@@ -10,4 +10,3 @@
 	</p>
 	<a href="/" class={buttonVariants({ size: 'lg' })}>Go Home</a>
 </div>
-
