@@ -69,15 +69,15 @@ export class ServersManager {
 			return
 		}
 
+		if (this.selectedServer === server) {
+			this.selectServer(this.servers[index + 1] ?? null)
+		}
+
 		server.cleanUp()
 		server.configServer.destroy()
 		server.configServer.delete()
 
 		this.servers.splice(index, 1)
-
-		if (this.selectedServer === server) {
-			this.selectServer(this.servers[index] ?? null)
-		}
 	}
 
 	destroy() {
