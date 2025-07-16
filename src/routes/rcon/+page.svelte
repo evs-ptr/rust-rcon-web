@@ -34,5 +34,10 @@
 	<ServersChooser {serversManager} />
 	{#if serversManager.selectedServer}
 		<ServerMain server={serversManager.selectedServer} />
+	{:else}
+		<div class="flex flex-col items-center justify-center gap-4 py-24 text-center text-pretty">
+			<h3 class="text-2xl font-bold tracking-tight">No server selected</h3>
+			<p class="text-muted-foreground">It's quiet in here... too quiet.</p>
+		</div>
 	{/if}
 </div>
