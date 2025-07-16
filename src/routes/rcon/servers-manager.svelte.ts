@@ -1,12 +1,31 @@
 import { ConfigServer, getAllSavedIdentifiers } from '$lib/config-server.svelte'
+import type { ConfigState } from '$lib/config-state.svelte'
 import { getContext, setContext } from 'svelte'
 import { RustServer } from './rust-server.svelte'
 
 export class ServersManager {
-	public readonly servers: RustServer[] = $state([])
-	public selectedServer: RustServer | null = $state(null)
+	readonly configState: ConfigState
+	readonly servers: RustServer[] = $state([])
+	selectedServer: RustServer | null = $derived.by(() => {
+		const selectedUUID = this.configState.selectedServerUUID
+		if (!selectedUUID) {
+			return null
+		}
 
-	constructor() {
+		if (!this.servers || !this.servers.length) {
+			return null
+		}
+
+		const server = this.servers.find((x) => x.configServer.identifier === selectedUUID)
+		if (!server) {
+			return this.servers[0]
+		}
+
+		return server
+	})
+
+	constructor(configState: ConfigState) {
+		this.configState = configState
 		this.loadSavedServers()
 	}
 
@@ -15,7 +34,7 @@ export class ServersManager {
 
 		if (!identifiers || !identifiers.length) {
 			const server = this.addBlankServer()
-			this.selectedServer = server
+			this.selectServer(server)
 			return
 		}
 
@@ -27,10 +46,10 @@ export class ServersManager {
 				console.error(`Error while creating server from storage ${id}`, e)
 			}
 		}
+	}
 
-		if (this.servers.length) {
-			this.selectedServer = this.servers[0]
-		}
+	selectServer(server: RustServer | null) {
+		this.configState.selectedServerUUID = server?.configServer.identifier ?? ''
 	}
 
 	addServer(configServer: ConfigServer): RustServer {
@@ -57,7 +76,7 @@ export class ServersManager {
 		this.servers.splice(index, 1)
 
 		if (this.selectedServer === server) {
-			this.selectedServer = this.servers[index] || null
+			this.selectServer(this.servers[index] ?? null)
 		}
 	}
 
@@ -83,8 +102,8 @@ export class ServersManager {
 
 const DEFAULT_KEY = 'serversManager'
 
-export function setServersManagerContext() {
-	const serversManager = new ServersManager()
+export function setServersManagerContext(configState: ConfigState) {
+	const serversManager = new ServersManager(configState)
 	return setContext<ServersManager>(DEFAULT_KEY, serversManager)
 }
 

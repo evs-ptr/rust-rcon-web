@@ -18,7 +18,7 @@
 	}
 
 	function switchServer(server: RustServer) {
-		serversManager.selectedServer = server
+		serversManager.selectServer(server)
 	}
 
 	function deleteServer(server: RustServer) {

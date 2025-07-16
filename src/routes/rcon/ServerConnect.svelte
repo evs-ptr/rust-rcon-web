@@ -135,7 +135,6 @@
 						class="cursor-pointer underline"
 						onclick={() => {
 							configState.iKnow = true
-							configState.save()
 						}}>I know, I know</button
 					>
 				</p>
