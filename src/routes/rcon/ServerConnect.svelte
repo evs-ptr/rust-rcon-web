@@ -72,7 +72,7 @@
 
 		if (!server.configServer.password) {
 			form.passwordInvalid = true
-			form.error = 'RCON Password is required.'
+			form.error = 'RCon Password is required.'
 			return false
 		}
 
@@ -143,7 +143,7 @@
 		</div>
 
 		<div class="grid gap-2">
-			<Label for="server.configServer.password">RCON Password</Label>
+			<Label for="server.configServer.password">RCon Password</Label>
 			<Input
 				class={form.passwordInvalid ? 'ring-destructive ring-2' : ''}
 				id="server.configServer.password"
