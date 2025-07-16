@@ -31,7 +31,7 @@ export class ConfigState extends StorageSynced {
 
 				/* eslint-disable @typescript-eslint/no-unused-expressions */
 				this.iKnow
-				this.serversOrderUUID
+				this.serversOrderUUID.length
 				this.selectedServerUUID
 				/* eslint-enable @typescript-eslint/no-unused-expressions */
 
@@ -56,8 +56,7 @@ export class ConfigState extends StorageSynced {
 			'serversOrderUUID' in json &&
 			typeof json.serversOrderUUID === 'object' &&
 			Array.isArray(json.serversOrderUUID) &&
-			this.serversOrderUUID.length != json.serversOrderUUID.length &&
-			!this.serversOrderUUID.every((el, ind) => el === (json.serversOrderUUID as string[])[ind])
+			this.serversOrderUUID.length != json.serversOrderUUID.length
 		) {
 			this.serversOrderUUID = json.serversOrderUUID as string[]
 		}
