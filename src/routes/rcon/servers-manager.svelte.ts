@@ -18,7 +18,7 @@ export class ServersManager {
 
 		const server = this.servers.find((x) => x.configServer.identifier === selectedUUID)
 		if (!server) {
-			return this.servers[0]
+			return null
 		}
 
 		return server
@@ -38,11 +38,20 @@ export class ServersManager {
 			return
 		}
 
-		identifiers.sort((a, b) => {
-			return this.configState.serversOrderUUID.indexOf(a) - this.configState.serversOrderUUID.indexOf(b)
-		})
+		const identifierSet = new Set(identifiers)
+		const currentOrder = this.configState.serversOrderUUID
 
-		for (const id of identifiers) {
+		const validOrdered = currentOrder.filter((id) => identifierSet.has(id))
+		const validOrderedSet = new Set(validOrdered)
+
+		const newIdentifiers = identifiers.filter((id) => !validOrderedSet.has(id))
+
+		const finalOrder = [...validOrdered, ...newIdentifiers]
+
+		this.configState.serversOrderUUID = finalOrder
+
+		// Load servers using the synchronized and correct order.
+		for (const id of finalOrder) {
 			try {
 				const config = new ConfigServer(id)
 				this.addServer(config)
@@ -59,7 +68,9 @@ export class ServersManager {
 	addServer(configServer: ConfigServer): RustServer {
 		const newServer = new RustServer(configServer)
 		this.servers.push(newServer)
-		this.configState.serversOrderUUID.push(newServer.configServer.identifier)
+		if (!this.configState.serversOrderUUID.includes(newServer.configServer.identifier)) {
+			this.configState.serversOrderUUID.push(newServer.configServer.identifier)
+		}
 		return newServer
 	}
 
