@@ -10,11 +10,15 @@ export class RustServer {
 
 	public connectionWasEstablished: boolean = $state(false)
 
+	public displayName: string
+
 	private rcon: RustRconConnection | null = $state(null)
 
 	constructor(configServer: ConfigServer) {
 		this.configServer = configServer
 		this.id = RustServer.idCounter++
+
+		this.displayName = $derived(configServer.address || this.getRandomEmoji())
 	}
 
 	cleanUp() {
@@ -81,5 +85,30 @@ export class RustServer {
 			return
 		}
 		return this.rcon.sendCommand(command)
+	}
+
+	private getRandomEmoji() {
+		const em: string[] = [
+			'༼⌐■ل͟■༽',
+			'(。﹏。*)',
+			'( ͡°- ͡°)',
+			'T ʖ̯ T',
+			'(ㆆ_ㆆ)',
+			'ʕ ͡° ᴥ ͡°ʔ',
+			'༼▀̿̿Ĺ̯̿̿▀̿ ̿༽=ε/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿ ̿̿༼ ຈل͜ຈ༽',
+			'•‿•',
+			'( ͡°ε ͡°)',
+			'( ° ͜ʖ °)',
+			'( ͠° ͟ʖ ͡°)',
+			'( ͡ᵔ ͜ʖ ͡ᵔ )',
+			'（￣～￣;）',
+			'(╯°□°）╯︵ ┻━┻',
+			'(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧',
+			'(⌐■_■)',
+			"(ง'̀-'́)ง",
+			'[¬º-°]¬',
+		]
+		const index = Math.floor(Math.random() * em.length)
+		return em[index]
 	}
 }

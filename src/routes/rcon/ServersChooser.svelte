@@ -36,7 +36,7 @@
 			>
 				<!-- TODO: is connected indicator -->
 				<!-- TODO: server name if exists -->
-				<span>{server.configServer.address.trim() || '_'}</span>
+				<span>{server.displayName}</span>
 				<!-- TODO: server fps -->
 			</Button>
 
