@@ -13,7 +13,7 @@
 	let { serversManager }: Props = $props()
 
 	function addBlankServer() {
-		const newServer = serversManager.addServer()
+		const newServer = serversManager.addBlankServer()
 		switchServer(newServer)
 	}
 

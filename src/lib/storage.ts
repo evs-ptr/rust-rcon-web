@@ -40,3 +40,20 @@ export function deleteFromStorage(key: string) {
 
 	localStorage.removeItem(key)
 }
+
+export function getAllKeys(): string[] {
+	if (!browser) {
+		return []
+	}
+
+	const keys: string[] = []
+
+	for (let i = 0; i < localStorage.length; i++) {
+		const key = localStorage.key(i)
+		if (key) {
+			keys.push(key)
+		}
+	}
+
+	return keys
+}

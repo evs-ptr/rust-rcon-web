@@ -1,3 +1,4 @@
+import { getAllKeys } from './storage'
 import { StorageSynced } from './storage-synced'
 
 const STORAGE_KEY_PREFIX = 'vc1_server_'
@@ -25,6 +26,8 @@ export class ConfigServer extends StorageSynced {
 		const key = STORAGE_KEY_PREFIX + identifier
 		super(key)
 		this.identifier = identifier
+
+		this.load()
 
 		this.effectCleanup = $effect.root(() => {
 			$effect(() => {
@@ -89,4 +92,13 @@ export class ConfigServer extends StorageSynced {
 			this.password = pwd
 		}
 	}
+}
+
+export function getAllSavedIdentifiers(): string[] {
+	const keys = getAllKeys()?.filter((x) => x.startsWith(STORAGE_KEY_PREFIX))
+	if (!keys) {
+		return []
+	}
+
+	return keys.map((x) => x.slice(STORAGE_KEY_PREFIX.length)).filter(Boolean)
 }

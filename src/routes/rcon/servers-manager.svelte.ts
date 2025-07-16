@@ -1,21 +1,47 @@
+import { ConfigServer, getAllSavedIdentifiers } from '$lib/config-server.svelte'
 import { getContext, setContext } from 'svelte'
 import { RustServer } from './rust-server.svelte'
-import { ConfigServer } from '$lib/config-server.svelte'
 
 export class ServersManager {
 	public readonly servers: RustServer[] = $state([])
 	public selectedServer: RustServer | null = $state(null)
 
 	constructor() {
-		const server = this.addServer()
-		this.selectedServer = server
+		this.loadSavedServers()
 	}
 
-	addServer() {
-		const newConfigServer = new ConfigServer(ServersManager.genUUID())
-		const newServer = new RustServer(newConfigServer)
+	loadSavedServers() {
+		const identifiers = getAllSavedIdentifiers()
+
+		if (!identifiers || !identifiers.length) {
+			const server = this.addBlankServer()
+			this.selectedServer = server
+			return
+		}
+
+		for (const id of identifiers) {
+			try {
+				const config = new ConfigServer(id)
+				this.addServer(config)
+			} catch (e) {
+				console.error(`Error while creating server from storage ${id}`, e)
+			}
+		}
+
+		if (this.servers.length) {
+			this.selectedServer = this.servers[0]
+		}
+	}
+
+	addServer(configServer: ConfigServer): RustServer {
+		const newServer = new RustServer(configServer)
 		this.servers.push(newServer)
 		return newServer
+	}
+
+	addBlankServer(): RustServer {
+		const newConfigServer = new ConfigServer(ServersManager.genUUID())
+		return this.addServer(newConfigServer)
 	}
 
 	deleteServer(server: RustServer) {
@@ -25,6 +51,9 @@ export class ServersManager {
 		}
 
 		server.cleanUp()
+		server.configServer.destroy()
+		server.configServer.delete()
+
 		this.servers.splice(index, 1)
 
 		if (this.selectedServer === server) {
