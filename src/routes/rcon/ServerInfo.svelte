@@ -34,8 +34,8 @@
 		ret.push(
 			new CardData(ServerIcon, info.Hostname, `Version ${info.Version} (${info.Protocol})`, [
 				new CardItemData(MapIcon, 'Map', info.Map),
-				new CardItemData(ClockIcon, 'Uptime', info.Uptime.toString()), // format
-				new CardItemData(CalendareIcon, 'Game Time', info.GameTime),
+				new CardItemData(ClockIcon, 'Uptime', formatUptime(info.Uptime)),
+				new CardItemData(CalendareIcon, 'Game Time', formatDate(info.GameTime)),
 			]),
 			new CardData(UsersIcon, 'Players', `${info.Players} / ${info.MaxPlayers} online`, [
 				new CardItemData(LogInIcon, 'Joining', info.Joining.toString()),
@@ -44,17 +44,65 @@
 			new CardData(MonitorCogIcon, 'System', 'Internal server details', [
 				new CardItemData(CpuIcon, 'Entity Count', info.EntityCount.toString()),
 				new CardItemData(CpuIcon, 'Collections', info.Collections.toString()),
-				new CardItemData(CalendareIcon, 'Save Created Time', info.SaveCreatedTime), // format
+				new CardItemData(CalendareIcon, 'Save Created Time', formatDate(info.SaveCreatedTime)),
 			]),
 			new CardData(MonitorCogIcon, 'Performace', 'Real-time server performace', [
 				new CardItemData(GaugeIcon, 'Framerate', `${info.Framerate} FPS`),
-				new CardItemData(CpuIcon, 'Memory', info.Memory.toString()), // format
-				new CardItemData(NetworkIcon, 'Network In', info.NetworkIn.toString()), // format
-				new CardItemData(NetworkIcon, 'Network Out', info.NetworkOut.toString()), // format
+				new CardItemData(CpuIcon, 'Memory', formatBytes(info.Memory)),
+				new CardItemData(NetworkIcon, 'Network In', formatBytes(info.NetworkIn)),
+				new CardItemData(NetworkIcon, 'Network Out', formatBytes(info.NetworkOut)),
 			])
 		)
 
 		return ret
+	}
+
+	function formatUptime(seconds: number): string {
+		const d = Math.floor(seconds / (3600 * 24))
+		const h = Math.floor((seconds % (3600 * 24)) / 3600)
+		const m = Math.floor((seconds % 3600) / 60)
+		const s = Math.floor(seconds % 60)
+
+		const dDisplay = d > 0 ? d + 'd ' : ''
+		const hDisplay = h > 0 ? h + 'h ' : ''
+		const mDisplay = m > 0 ? m + 'm ' : ''
+		const sDisplay = s > 0 ? s + 's' : ''
+		return (dDisplay + hDisplay + mDisplay + sDisplay).trim()
+	}
+
+	function formatBytes(bytes: number, decimals = 2): string {
+		if (bytes === 0) return '0 B'
+		const k = 1024
+		const dm = decimals < 0 ? 0 : decimals
+		const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+		const i = Math.floor(Math.log(bytes) / Math.log(k))
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+	}
+
+	function formatDate(dateString: string): string {
+		try {
+			const [datePart, timePart] = dateString.split(' ')
+			if (!datePart || !timePart) return dateString
+			const [month, day, year] = datePart.split('/')
+			const [hours, minutes, seconds] = timePart.split(':')
+			const date = new Date(
+				Number(year),
+				Number(month) - 1,
+				Number(day),
+				Number(hours),
+				Number(minutes),
+				Number(seconds)
+			)
+			return date.toLocaleString(undefined, {
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			})
+		} catch {
+			return dateString
+		}
 	}
 
 	function parseServerInfo(json: string): ServerInfo | null {
