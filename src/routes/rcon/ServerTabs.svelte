@@ -9,26 +9,22 @@
 
 	let { server }: Props = $props()
 
-	type Tab = 'none' | 'info' | 'chat'
-
-	let selectedTab: Tab = $state('none')
-
-	let existingTabs: Tab[] = ['none', 'info', 'chat']
+	let existingTabs: (typeof server.configServer.selectedTab)[] = ['none', 'info', 'chat']
 </script>
 
 <div class="flex flex-col gap-2">
 	<div class="flex flex-row gap-2">
 		{#each existingTabs as tabName (tabName)}
 			<Button
-				variant={selectedTab == tabName ? 'outline' : 'ghost'}
-				class={[{ 'border border-transparent': selectedTab != tabName }, 'capitalize']}
-				onclick={() => (selectedTab = tabName)}>{tabName}</Button
+				variant={server.configServer.selectedTab == tabName ? 'outline' : 'ghost'}
+				class={[{ 'border border-transparent': server.configServer.selectedTab != tabName }, 'capitalize']}
+				onclick={() => (server.configServer.selectedTab = tabName)}>{tabName}</Button
 			>
 		{/each}
 	</div>
-	{#if selectedTab == 'info'}
+	{#if server.configServer.selectedTab == 'info'}
 		<ServerInfo {server} />
-	{:else if selectedTab == 'chat'}
+	{:else if server.configServer.selectedTab == 'chat'}
 		Chat
 	{/if}
 </div>

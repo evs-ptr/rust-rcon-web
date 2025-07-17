@@ -9,16 +9,20 @@ type ConfigServerJson = {
 	password: string
 	savePassword: boolean
 	useSecureWebsocket: boolean
+	selectedTab: string
 }
 
 export class ConfigServer extends StorageSynced {
 	identifier: string
+	firstFromJson: boolean = true
 	version: number = 1
 
 	address: string = $state('')
 	password: string = $state('') // not saved unless user specified
 	savePassword: boolean = $state(false)
 	useSecureWebsocket: boolean = $state(false)
+
+	selectedTab: 'none' | 'info' | 'chat' = $state('none')
 
 	private effectCleanup: () => void
 
@@ -38,6 +42,7 @@ export class ConfigServer extends StorageSynced {
 				this.password
 				this.savePassword
 				this.useSecureWebsocket
+				this.selectedTab
 				/* eslint-enable @typescript-eslint/no-unused-expressions */
 
 				this.save()
@@ -51,21 +56,41 @@ export class ConfigServer extends StorageSynced {
 	}
 
 	fromJSON(json: object) {
-		if ('version' in json && typeof json.version === 'number') {
+		if ('version' in json && typeof json.version === 'number' && this.version !== json.version) {
 			this.version = json.version
 		}
-		if ('address' in json && typeof json.address === 'string') {
+		if ('address' in json && typeof json.address === 'string' && this.address !== json.address) {
 			this.address = json.address
 		}
-		if ('password' in json && typeof json.password === 'string') {
+		if ('password' in json && typeof json.password === 'string' && this.password !== json.password) {
 			this.password = json.password
 		}
-		if ('savePassword' in json && typeof json.savePassword === 'boolean') {
+		if (
+			'savePassword' in json &&
+			typeof json.savePassword === 'boolean' &&
+			this.savePassword !== json.savePassword
+		) {
 			this.savePassword = json.savePassword
 		}
-		if ('useSecureWebsocket' in json && typeof json.useSecureWebsocket === 'boolean') {
+		if (
+			'useSecureWebsocket' in json &&
+			typeof json.useSecureWebsocket === 'boolean' &&
+			this.useSecureWebsocket !== json.useSecureWebsocket
+		) {
 			this.useSecureWebsocket = json.useSecureWebsocket
 		}
+		if (
+			'selectedTab' in json &&
+			typeof json.selectedTab === 'string' &&
+			this.selectedTab !== json.selectedTab
+		) {
+			// prevent multi tab issues
+			if (this.firstFromJson) {
+				this.selectedTab = json.selectedTab as typeof this.selectedTab
+			}
+		}
+
+		this.firstFromJson = false
 	}
 
 	toJSON(): ConfigServerJson {
@@ -75,6 +100,7 @@ export class ConfigServer extends StorageSynced {
 			password: this.savePassword ? this.password : '',
 			savePassword: this.savePassword,
 			useSecureWebsocket: this.useSecureWebsocket,
+			selectedTab: this.selectedTab,
 		}
 	}
 }
