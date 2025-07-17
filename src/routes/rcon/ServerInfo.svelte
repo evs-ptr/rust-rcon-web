@@ -101,6 +101,7 @@
 
 		cleanUp()
 		setUp()
+
 		return () => {
 			cleanUp()
 		}
@@ -108,12 +109,12 @@
 
 	class CardItemData {
 		icon: typeof ServerIcon
-		header: string
+		label: string
 		value: string
 
 		constructor(icon: typeof ServerIcon, header: string, value: string) {
 			this.icon = icon
-			this.header = header
+			this.label = header
 			this.value = value
 		}
 	}
@@ -138,24 +139,22 @@
 	}
 </script>
 
-<div>
+<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
 	{#if serverInfo && cardsData}
 		{#each cardsData as card, i (i)}
-			<Card.Root>
+			<Card.Root class="bg-transparent">
 				<Card.Header>
-					<Card.Title>
+					<Card.Title class="flex items-center gap-2">
 						<card.headerIcon />
 						{card.header}
 					</Card.Title>
-					<Card.Description>{card.description}</Card.Description>
+					<Card.Description class="text-pretty">
+						{card.description}
+					</Card.Description>
 				</Card.Header>
-				<Card.Content>
+				<Card.Content class="flex flex-col gap-4">
 					{#each card.cardItems as cardItem, j (j)}
-						<div>
-							<cardItem.icon />
-							<span>{cardItem.header}</span>
-							<span>{cardItem.value}</span>
-						</div>
+						{@render cardItemSnippet(cardItem)}
 					{/each}
 				</Card.Content>
 			</Card.Root>
@@ -163,3 +162,15 @@
 	{/if}
 	<span class="font-mono text-sm whitespace-pre">{JSON.stringify(serverInfo, undefined, 2)}</span>
 </div>
+
+{#snippet cardItemSnippet(item: CardItemData)}
+	<div class="flex flex-row justify-between text-sm text-pretty">
+		<div class="flex flex-col gap-1.5">
+			<item.icon class="text-muted-foreground size-5" />
+			<span class="font-medium">{item.label}</span>
+		</div>
+		<div class="flex flex-col gap-1.5 text-right font-mono text-xs">
+			<span>{item.value}</span>
+		</div>
+	</div>
+{/snippet}
