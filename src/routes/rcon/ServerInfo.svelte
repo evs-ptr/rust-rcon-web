@@ -2,8 +2,15 @@
 	import * as Card from '$lib/components/ui/card/index.js'
 	import CalendareIcon from '@lucide/svelte/icons/calendar'
 	import ClockIcon from '@lucide/svelte/icons/clock'
+	import CpuIcon from '@lucide/svelte/icons/cpu'
+	import GaugeIcon from '@lucide/svelte/icons/gauge'
+	import LogInIcon from '@lucide/svelte/icons/log-in'
 	import MapIcon from '@lucide/svelte/icons/map'
+	import MonitorCogIcon from '@lucide/svelte/icons/monitor-cog'
+	import NetworkIcon from '@lucide/svelte/icons/network'
+	import PowerIcon from '@lucide/svelte/icons/power'
 	import ServerIcon from '@lucide/svelte/icons/server'
+	import UsersIcon from '@lucide/svelte/icons/users'
 	import type { ServerInfo } from './rust-rcon.types'
 	import type { RustServer } from './rust-server.svelte'
 
@@ -29,6 +36,21 @@
 				new CardItemData(MapIcon, 'Map', info.Map),
 				new CardItemData(ClockIcon, 'Uptime', info.Uptime.toString()), // format
 				new CardItemData(CalendareIcon, 'Game Time', info.GameTime),
+			]),
+			new CardData(UsersIcon, 'Players', `${info.Players} / ${info.MaxPlayers} online`, [
+				new CardItemData(LogInIcon, 'Joining', info.Joining.toString()),
+				new CardItemData(PowerIcon, 'Queued', info.Queued.toString()),
+			]),
+			new CardData(MonitorCogIcon, 'System', 'Internal server details', [
+				new CardItemData(CpuIcon, 'Entity Count', info.EntityCount.toString()),
+				new CardItemData(CpuIcon, 'Collections', info.Collections.toString()),
+				new CardItemData(CalendareIcon, 'Save Created Time', info.SaveCreatedTime), // format
+			]),
+			new CardData(MonitorCogIcon, 'Performace', 'Real-time server performace', [
+				new CardItemData(GaugeIcon, 'Framerate', `${info.Framerate} FPS`),
+				new CardItemData(CpuIcon, 'Memory', info.Memory.toString()), // format
+				new CardItemData(NetworkIcon, 'Network In', info.NetworkIn.toString()), // format
+				new CardItemData(NetworkIcon, 'Network Out', info.NetworkOut.toString()), // format
 			])
 		)
 
