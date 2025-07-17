@@ -13,8 +13,8 @@ type ConfigServerJson = {
 }
 
 export class ConfigServer extends StorageSynced {
+	private firstFromJson: boolean = true
 	identifier: string
-	firstFromJson: boolean = true
 	version: number = 1
 
 	address: string = $state('')

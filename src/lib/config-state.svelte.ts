@@ -12,6 +12,7 @@ type ConfigStateJson = {
 }
 
 export class ConfigState extends StorageSynced {
+	private firstFromJson: boolean = true
 	version: number = 1
 
 	iKnow: boolean = $state(false)
@@ -66,10 +67,12 @@ export class ConfigState extends StorageSynced {
 			this.selectedServerUUID !== json.selectedServerUUID
 		) {
 			// don't change between tabs
-			if (!this.selectedServerUUID) {
+			if (this.firstFromJson) {
 				this.selectedServerUUID = json.selectedServerUUID
 			}
 		}
+
+		this.firstFromJson = false
 	}
 
 	toJSON(): ConfigStateJson {
