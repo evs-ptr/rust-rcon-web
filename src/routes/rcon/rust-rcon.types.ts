@@ -1,3 +1,26 @@
+export interface ServerInfo {
+	Hostname: string
+	MaxPlayers: number
+	Players: number
+	Queued: number
+	Joining: number
+	ReservedSlots: number
+	EntityCount: number
+	GameTime: string
+	Uptime: number
+	Map: string
+	Framerate: number
+	Memory: number
+	MemoryUsageSystem: number
+	Collections: number
+	NetworkIn: number
+	NetworkOut: number
+	Restarting: boolean
+	SaveCreatedTime: string
+	Version: number
+	Protocol: string
+}
+
 export enum ReportType {
 	General = 0,
 	Bug = 1,
