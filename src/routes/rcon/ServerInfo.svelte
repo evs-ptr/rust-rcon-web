@@ -14,6 +14,19 @@
 	import type { ServerInfo } from './rust-rcon.types'
 	import type { RustServer } from './rust-server.svelte'
 
+	type CardItemData = {
+		icon: typeof ServerIcon
+		label: string
+		value: string | string[]
+	}
+
+	type CardData = {
+		headerIcon: typeof ServerIcon
+		header: string
+		description: string
+		cardItems: CardItemData[]
+	}
+
 	interface Props {
 		server: RustServer
 	}
@@ -29,30 +42,52 @@
 	let cardsData: CardData[] | null = $derived(serverInfo ? constructCardsData(serverInfo) : null)
 
 	function constructCardsData(info: ServerInfo): CardData[] {
-		const ret: CardData[] = [
-			new CardData(ServerIcon, info.Hostname, `Version ${info.Version} (${info.Protocol})`, [
-				new CardItemData(MapIcon, 'Map', info.Map),
-				new CardItemData(ClockIcon, 'Uptime', formatUptime(info.Uptime)),
-				new CardItemData(CalendareIcon, 'Game Time', formatDate(info.GameTime)),
-			]),
-			new CardData(UsersIcon, 'Players', `${info.Players} / ${info.MaxPlayers} online`, [
-				new CardItemData(LogInIcon, 'Joining', info.Joining.toString()),
-				new CardItemData(PowerIcon, 'Queued', info.Queued.toString()),
-			]),
-			new CardData(MonitorCogIcon, 'System', 'Internal server details', [
-				new CardItemData(CpuIcon, 'Entity Count', info.EntityCount.toString()),
-				new CardItemData(CpuIcon, 'Collections', info.Collections.toString()),
-				new CardItemData(CalendareIcon, 'Save Created Time', formatDate(info.SaveCreatedTime)),
-			]),
-			new CardData(MonitorCogIcon, 'Performace', 'Real-time server performace', [
-				new CardItemData(GaugeIcon, 'Framerate', `${info.Framerate} FPS`),
-				new CardItemData(CpuIcon, 'Memory', formatBytes(info.Memory)),
-				new CardItemData(NetworkIcon, 'Network In', formatBytes(info.NetworkIn)),
-				new CardItemData(NetworkIcon, 'Network Out', formatBytes(info.NetworkOut)),
-			]),
+		return [
+			{
+				headerIcon: ServerIcon,
+				header: info.Hostname,
+				description: `Version ${info.Version} (${info.Protocol})`,
+				cardItems: [
+					{ icon: MapIcon, label: 'Map', value: info.Map },
+					{ icon: ClockIcon, label: 'Uptime', value: formatUptime(info.Uptime) },
+					{ icon: CalendareIcon, label: 'Game Time', value: formatDate(info.GameTime) },
+				],
+			},
+			{
+				headerIcon: UsersIcon,
+				header: 'Players',
+				description: `${info.Players} / ${info.MaxPlayers} online`,
+				cardItems: [
+					{ icon: LogInIcon, label: 'Joining', value: info.Joining.toString() },
+					{ icon: PowerIcon, label: 'Queued', value: info.Queued.toString() },
+				],
+			},
+			{
+				headerIcon: MonitorCogIcon,
+				header: 'System',
+				description: 'Internal server details',
+				cardItems: [
+					{ icon: CpuIcon, label: 'Entity Count', value: info.EntityCount.toString() },
+					{ icon: CpuIcon, label: 'Collections', value: info.Collections.toString() },
+					{
+						icon: CalendareIcon,
+						label: 'Save Created Time',
+						value: formatDate(info.SaveCreatedTime),
+					},
+				],
+			},
+			{
+				headerIcon: MonitorCogIcon,
+				header: 'Performance',
+				description: 'Real-time server performance',
+				cardItems: [
+					{ icon: GaugeIcon, label: 'Framerate', value: `${info.Framerate} FPS` },
+					{ icon: CpuIcon, label: 'Memory', value: formatBytes(info.Memory) },
+					{ icon: NetworkIcon, label: 'Network In', value: formatBytes(info.NetworkIn) },
+					{ icon: NetworkIcon, label: 'Network Out', value: formatBytes(info.NetworkOut) },
+				],
+			},
 		]
-
-		return ret
 	}
 
 	function formatUptime(seconds: number): string {
@@ -140,40 +175,9 @@
 			cleanUp()
 		}
 	})
-
-	class CardItemData {
-		icon: typeof ServerIcon
-		label: string
-		value: string | string[]
-
-		constructor(icon: typeof ServerIcon, header: string, value: string | string[]) {
-			this.icon = icon
-			this.label = header
-			this.value = value
-		}
-	}
-
-	class CardData {
-		headerIcon: typeof ServerIcon
-		header: string
-		description: string
-		cardItems: CardItemData[]
-
-		constructor(
-			headerIcon: typeof ServerIcon,
-			header: string,
-			description: string,
-			cardItems: CardItemData[]
-		) {
-			this.headerIcon = headerIcon
-			this.header = header
-			this.description = description
-			this.cardItems = cardItems
-		}
-	}
 </script>
 
-<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+<div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
 	{#if serverInfo && cardsData}
 		{#each cardsData as card, i (i)}
 			<Card.Root class="bg-transparent">
@@ -193,16 +197,41 @@
 				</Card.Content>
 			</Card.Root>
 		{/each}
+	{:else}
+		{#each Array(4), i (i)}
+			<Card.Root class="bg-transparent">
+				<Card.Header>
+					<Card.Title class="flex items-center gap-2">
+						<div class="bg-muted size-6 animate-pulse rounded-full"></div>
+						<div class="bg-muted h-6 w-32 animate-pulse rounded-lg"></div>
+					</Card.Title>
+					<Card.Description>
+						<div class="bg-muted h-4 w-48 animate-pulse rounded-lg"></div>
+					</Card.Description>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-4">
+					{#each Array(3), j (j)}
+						<div class="flex items-center justify-between text-sm">
+							<div class="flex items-center gap-2">
+								<div class="bg-muted size-5 animate-pulse rounded-lg"></div>
+								<div class="bg-muted h-5 w-20 animate-pulse rounded-lg"></div>
+							</div>
+							<div class="bg-muted h-5 w-16 animate-pulse rounded-lg"></div>
+						</div>
+					{/each}
+				</Card.Content>
+			</Card.Root>
+		{/each}
 	{/if}
 </div>
 
 {#snippet cardItemSnippet(item: CardItemData)}
-	<div class="flex flex-row justify-between text-sm">
-		<div class="flex flex-col gap-1.5 text-balance">
+	<div class="flex items-center justify-between text-sm">
+		<div class="flex items-center gap-2 text-balance">
 			<item.icon class="text-muted-foreground size-5" />
 			<span class="font-medium">{item.label}</span>
 		</div>
-		<div class="flex flex-col gap-1.5 text-right font-mono text-xs text-balance">
+		<div class="flex flex-col text-right font-mono text-xs text-balance">
 			{#if Array.isArray(item.value)}
 				{#each item.value as val, k (k)}
 					<span>{val}</span>
@@ -213,3 +242,4 @@
 		</div>
 	</div>
 {/snippet}
+
