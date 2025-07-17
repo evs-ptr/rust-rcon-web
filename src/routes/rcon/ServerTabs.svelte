@@ -25,6 +25,6 @@
 	{#if server.configServer.selectedTab == 'info'}
 		<ServerInfo {server} />
 	{:else if server.configServer.selectedTab == 'chat'}
-		Chat
+		Chat (under construciton)
 	{/if}
 </div>
