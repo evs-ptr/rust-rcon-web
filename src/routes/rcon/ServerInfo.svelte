@@ -36,7 +36,7 @@
 	const INTERVAL_MS: number = 5_650
 	const COMMAND_SERVER_INFO: string = 'global.serverinfo'
 
-	let interval: ReturnType<typeof setInterval> | null = null
+	let interval: ReturnType<typeof setTimeout> | null = null
 
 	let serverInfo: ServerInfo | null = $state(null)
 	let cardsData: CardData[] | null = $derived(serverInfo ? constructCardsData(serverInfo) : null)
@@ -151,16 +151,20 @@
 		if (info) {
 			serverInfo = info
 		}
+
+		if (interval != null) {
+			interval = setTimeout(intervalTick, INTERVAL_MS)
+		}
 	}
 
 	function setUp() {
-		intervalTick()
-		interval = setInterval(() => intervalTick(), INTERVAL_MS)
+		interval = setTimeout(intervalTick, 0)
 	}
 
 	function cleanUp() {
 		if (interval != null) {
-			clearInterval(interval)
+			clearTimeout(interval)
+			interval = null
 		}
 	}
 
@@ -242,4 +246,3 @@
 		</div>
 	</div>
 {/snippet}
-
