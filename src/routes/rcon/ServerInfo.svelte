@@ -29,9 +29,7 @@
 	let cardsData: CardData[] | null = $derived(serverInfo ? constructCardsData(serverInfo) : null)
 
 	function constructCardsData(info: ServerInfo): CardData[] {
-		const ret: CardData[] = []
-
-		ret.push(
+		const ret: CardData[] = [
 			new CardData(ServerIcon, info.Hostname, `Version ${info.Version} (${info.Protocol})`, [
 				new CardItemData(MapIcon, 'Map', info.Map),
 				new CardItemData(ClockIcon, 'Uptime', formatUptime(info.Uptime)),
@@ -51,8 +49,8 @@
 				new CardItemData(CpuIcon, 'Memory', formatBytes(info.Memory)),
 				new CardItemData(NetworkIcon, 'Network In', formatBytes(info.NetworkIn)),
 				new CardItemData(NetworkIcon, 'Network Out', formatBytes(info.NetworkOut)),
-			])
-		)
+			]),
+		]
 
 		return ret
 	}
@@ -79,27 +77,15 @@
 		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 	}
 
-	function formatDate(dateString: string): string {
+	function formatDate(dateString: string): string[] | string {
 		try {
 			const [datePart, timePart] = dateString.split(' ')
-			if (!datePart || !timePart) return dateString
+			if (!datePart || !timePart) {
+				return dateString
+			}
+
 			const [month, day, year] = datePart.split('/')
-			const [hours, minutes, seconds] = timePart.split(':')
-			const date = new Date(
-				Number(year),
-				Number(month) - 1,
-				Number(day),
-				Number(hours),
-				Number(minutes),
-				Number(seconds)
-			)
-			return date.toLocaleString(undefined, {
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit',
-			})
+			return [`${year}-${month}-${day}`, `${timePart}`]
 		} catch {
 			return dateString
 		}
@@ -158,9 +144,9 @@
 	class CardItemData {
 		icon: typeof ServerIcon
 		label: string
-		value: string
+		value: string | string[]
 
-		constructor(icon: typeof ServerIcon, header: string, value: string) {
+		constructor(icon: typeof ServerIcon, header: string, value: string | string[]) {
 			this.icon = icon
 			this.label = header
 			this.value = value
@@ -187,7 +173,7 @@
 	}
 </script>
 
-<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
 	{#if serverInfo && cardsData}
 		{#each cardsData as card, i (i)}
 			<Card.Root class="bg-transparent">
@@ -208,17 +194,22 @@
 			</Card.Root>
 		{/each}
 	{/if}
-	<span class="font-mono text-sm whitespace-pre">{JSON.stringify(serverInfo, undefined, 2)}</span>
 </div>
 
 {#snippet cardItemSnippet(item: CardItemData)}
-	<div class="flex flex-row justify-between text-sm text-pretty">
-		<div class="flex flex-col gap-1.5">
+	<div class="flex flex-row justify-between text-sm">
+		<div class="flex flex-col gap-1.5 text-balance">
 			<item.icon class="text-muted-foreground size-5" />
 			<span class="font-medium">{item.label}</span>
 		</div>
-		<div class="flex flex-col gap-1.5 text-right font-mono text-xs">
-			<span>{item.value}</span>
+		<div class="flex flex-col gap-1.5 text-right font-mono text-xs text-balance">
+			{#if Array.isArray(item.value)}
+				{#each item.value as val, k (k)}
+					<span>{val}</span>
+				{/each}
+			{:else}
+				<span>{item.value}</span>
+			{/if}
 		</div>
 	</div>
 {/snippet}
