@@ -77,21 +77,6 @@ export class ConfigServer extends StorageSynced {
 			useSecureWebsocket: this.useSecureWebsocket,
 		}
 	}
-
-	resetToDefault(preserveCredentials: boolean) {
-		const addr = this.address
-		const pwd = this.password
-
-		const def = new ConfigServer(this.identifier)
-		const json = def.toJSON()
-		this.fromJSON(json)
-		def.destroy()
-
-		if (preserveCredentials) {
-			this.address = addr
-			this.password = pwd
-		}
-	}
 }
 
 export function getAllSavedIdentifiers(): string[] {
