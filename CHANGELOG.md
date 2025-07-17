@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-07-17 - Jul 17
+
+- Add tabs underneath server console
+- Implemented Info tab
+
 ## 2025-07-16 - Jul 16
 
 - Save/load logic of servers were implemented
