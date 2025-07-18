@@ -1,6 +1,7 @@
 import type { ConfigGlobal } from '$lib/config-global.svelte'
 import { CommandHistory } from './command-history.svelte'
-import { LogType, type ChatEntry, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
+import type { ChatEntry } from './rust-rcon-chat'
+import { LogType, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()

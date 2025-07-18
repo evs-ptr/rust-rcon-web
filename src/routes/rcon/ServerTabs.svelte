@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js'
 	import type { RustServer } from './rust-server.svelte'
+	import ServerChat from './ServerChat.svelte'
 	import ServerInfo from './ServerInfo.svelte'
 
 	interface Props {
@@ -25,6 +26,6 @@
 	{#if server.configServer.selectedTab == 'info'}
 		<ServerInfo {server} />
 	{:else if server.configServer.selectedTab == 'chat'}
-		Chat (under construciton)
+		<ServerChat {server} />
 	{/if}
 </div>
