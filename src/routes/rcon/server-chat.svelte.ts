@@ -20,8 +20,8 @@ export class ServerChatStore {
 	public readonly config: ConfigGlobal
 
 	readonly chatMessages: ServerChatMessage[] = $state([])
-	readonly chatCommandInput: string = $state('')
 
+	chatCommandInput: string = $state('')
 	public readonly history: CommandHistory = new CommandHistory()
 
 	public lastScrollTop: number | null = null
