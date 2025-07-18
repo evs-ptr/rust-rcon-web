@@ -157,20 +157,20 @@
 
 		<div class="flex items-start gap-3">
 			<Checkbox
-				id="save-password"
-				bind:checked={server.configServer.savePassword}
-				disabled={form.isAwaitingResponse}
-			/>
-			<Label for="save-password">Save Password (inside browser)</Label>
-		</div>
-
-		<div class="flex items-start gap-3">
-			<Checkbox
 				id="use-secure"
 				bind:checked={server.configServer.useSecureWebsocket}
 				disabled={form.isAwaitingResponse}
 			/>
 			<Label for="use-secure">Use secure (wss://)</Label>
+		</div>
+
+		<div class="flex items-start gap-3">
+			<Checkbox
+				id="save-password"
+				bind:checked={server.configServer.savePassword}
+				disabled={form.isAwaitingResponse}
+			/>
+			<Label for="save-password">Save Password (inside browser)</Label>
 		</div>
 
 		{#if form.error}
