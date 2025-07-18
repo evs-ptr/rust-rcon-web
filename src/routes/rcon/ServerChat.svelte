@@ -10,10 +10,15 @@
 	let { server }: Props = $props()
 	let config = getConfigGlobalContext()
 	let store: ServerChatStore = $derived(getServerChatStore(server.id, config))
+
+	$effect(() => {
+		store.tryPopulateChat(server)
+		store.trySubscribeToMessagesPlayerRelated(server)
+	})
 </script>
 
 <div class="flex flex-col">
-	{#each store.chatMessages as msg (msg.id)}
-		<span>{msg.message}</span>
+	{#each store.chatMessages as entry (entry.id)}
+		<span>{entry.message.Message}</span>
 	{/each}
 </div>

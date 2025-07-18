@@ -1,6 +1,6 @@
 import type { ConfigGlobal } from '$lib/config-global.svelte'
 import { CommandHistory } from './command-history.svelte'
-import type { ChatEntry } from './rust-rcon-chat'
+import { parseChatEntries, parseChatEntry, type ChatEntry } from './rust-rcon-chat'
 import { LogType, type CommandResponse, type HistoryMessage } from './rust-rcon.types'
 import type { RustServer } from './rust-server.svelte'
 
@@ -113,6 +113,7 @@ export class ServerConsoleStore {
 			timestamp
 		)
 	}
+
 	parseChatMessage(message: ChatEntry) {
 		const timestamp = new Date(message.Time * 1000)
 		return new ServerConsoleMessage(message, ServerConsoleMessageType.Console, LogType.Chat, timestamp)
@@ -137,11 +138,10 @@ export class ServerConsoleStore {
 	}
 
 	addChatMessageFromCommandResponse(message: CommandResponse): ServerConsoleMessage {
-		try {
-			const chatEntry = JSON.parse(message.Message) as ChatEntry
+		const chatEntry = parseChatEntry(message)
+		if (chatEntry) {
 			return this.addChatMessage(chatEntry)
-		} catch (error) {
-			console.error(error)
+		} else {
 			return this.addMessage(message)
 		}
 	}
@@ -176,11 +176,9 @@ export class ServerConsoleStore {
 				return // TODO: handle error
 			}
 
-			try {
-				const messagesChat = JSON.parse(responseChat.Message) as ChatEntry[]
+			const messagesChat = parseChatEntries(responseChat)
+			if (messagesChat) {
 				junkyard.push(...messagesChat.map(this.parseChatMessage.bind(this)))
-			} catch (error) {
-				console.error(error)
 			}
 		}
 

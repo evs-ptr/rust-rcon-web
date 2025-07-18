@@ -24,6 +24,10 @@ export class ConfigGlobal extends StorageSynced {
 	consoleChatInclude: boolean = $state(true)
 	consoleChatHistoryFetch: number = $state(90)
 
+	chatHistoryFetch: number = $state(400)
+	chatHistoryLimitEnable: boolean = $state(true)
+	chatHistoryLimit: number = $state(1_000)
+
 	constructor() {
 		super(STORAGE_KEY)
 	}
