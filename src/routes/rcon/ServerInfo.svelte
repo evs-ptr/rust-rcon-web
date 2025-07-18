@@ -82,7 +82,7 @@
 				description: 'Real-time server performance',
 				cardItems: [
 					{ icon: GaugeIcon, label: 'Framerate', value: `${info.Framerate} FPS` },
-					{ icon: CpuIcon, label: 'Memory', value: formatBytes(info.Memory) },
+					{ icon: CpuIcon, label: 'Memory', value: formatBytes(info.Memory * 1024 * 1024) }, // to MB
 					{ icon: NetworkIcon, label: 'Network In', value: formatBytes(info.NetworkIn) },
 					{ icon: NetworkIcon, label: 'Network Out', value: formatBytes(info.NetworkOut) },
 				],
