@@ -5,6 +5,7 @@
 	import { tick } from 'svelte'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerChatStore, type ServerChatStore } from './server-chat.svelte'
+	import ServerChatEntry from './ServerChatEntry.svelte'
 
 	interface Props {
 		server: RustServer
@@ -144,7 +145,7 @@
 	>
 		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
 			{#each store.chatMessages as entry (entry.id)}
-				<span>{entry.message.Message}</span>
+				<ServerChatEntry entry={entry.message} />
 			{/each}
 		</div>
 	</div>
