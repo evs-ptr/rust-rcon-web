@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-07-18 - Jul 18
+
+- Implemented Chat tab (inherits Console a lot)
+
 ## 2025-07-17 - Jul 17
 
 - Add tabs underneath server console
