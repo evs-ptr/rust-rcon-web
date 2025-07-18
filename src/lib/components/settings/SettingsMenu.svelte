@@ -39,7 +39,7 @@
 		</Sheet.Header>
 		<div class="grid flex-1 auto-rows-min gap-6 overflow-y-auto px-4">
 			<div class="grid gap-8">
-				<h3 class="text-lg font-medium">General</h3>
+				<h3 class="text-lg font-medium">Console</h3>
 				<SettingsInput
 					bind:value={config.consoleHistoryFetch}
 					validator={commonValValidCheck}
@@ -50,40 +50,9 @@
 						The number of console lines to load when you first connect to a server.
 					{/snippet}
 				</SettingsInput>
-			</div>
-
-			<Separator />
-
-			<div class="grid gap-8">
-				<h3 class="text-lg font-medium">Chat</h3>
-				<SettingsSwitchInput
-					bind:value={config.consoleChatInclude}
-					id="include-chat"
-					label="Show Chat in Console"
-				>
-					{#snippet description()}
-						Display player chat messages alongside regular console output.
-					{/snippet}
-				</SettingsSwitchInput>
-				<SettingsInput
-					bind:value={config.consoleChatHistoryFetch}
-					validator={commonValValidCheck}
-					id="chat-history-fetch"
-					label="Chat History Fetch"
-				>
-					{#snippet description()}
-						The number of chat messages to load when you first connect.
-					{/snippet}
-				</SettingsInput>
-			</div>
-
-			<Separator />
-
-			<div class="grid gap-8">
-				<h3 class="text-lg font-medium">History Limiting</h3>
 				<SettingsSwitchInput
 					bind:value={config.consoleHistoryLimitEnable}
-					id="enable-history-clamp"
+					id="enable-console-history-limit"
 					label="Enable History Limit"
 				>
 					{#snippet description()}
@@ -93,11 +62,65 @@
 				<SettingsInput
 					bind:value={config.consoleHistoryLimit}
 					validator={commonValValidCheck}
-					id="history-clamp-value"
+					id="console-history-limit"
 					label="History Limit"
 				>
 					{#snippet description()}
 						The maximum number of console lines to keep in memory.
+					{/snippet}
+				</SettingsInput>
+				<SettingsSwitchInput
+					bind:value={config.consoleChatInclude}
+					id="console-chat-include"
+					label="Show Chat in Console"
+				>
+					{#snippet description()}
+						Display player chat messages alongside regular console output.
+					{/snippet}
+				</SettingsSwitchInput>
+				<SettingsInput
+					bind:value={config.consoleChatHistoryFetch}
+					validator={commonValValidCheck}
+					id="console-chat-history-fetch"
+					label="Initial Chat History Fetch"
+				>
+					{#snippet description()}
+						The number of chat messages to load in the console when you first connect.
+					{/snippet}
+				</SettingsInput>
+			</div>
+
+			<Separator />
+
+			<div class="grid gap-8">
+				<h3 class="text-lg font-medium">Chat</h3>
+				<SettingsInput
+					bind:value={config.chatHistoryFetch}
+					validator={commonValValidCheck}
+					id="chat-history-fetch"
+					label="Initial History Fetch"
+				>
+					{#snippet description()}
+						The number of chat messages to load when you open the dedicated chat view.
+					{/snippet}
+				</SettingsInput>
+				<SettingsSwitchInput
+					bind:value={config.chatHistoryLimitEnable}
+					id="enable-chat-history-limit"
+					label="Enable History Limit"
+				>
+					{#snippet description()}
+						Automatically remove old chat messages to prevent performance issues.
+					{/snippet}
+				</SettingsSwitchInput>
+				<SettingsInput
+					bind:value={config.chatHistoryLimit}
+					validator={commonValValidCheck}
+					id="chat-history-limit"
+					label="History Limit"
+				>
+					{#snippet description()}
+						The maximum number of chat messages to keep in the dedicated chat view.
 					{/snippet}
 				</SettingsInput>
 			</div>
@@ -132,3 +155,4 @@
 		</Sheet.Footer>
 	</Sheet.Content>
 </Sheet.Root>
+
