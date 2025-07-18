@@ -27,43 +27,56 @@
 		return formattedDate
 	}
 
-	function getChannelColor(channel: ChatChannelEnum): string {
+	function getChannelColorClasses(channel: ChatChannelEnum): string {
 		switch (channel) {
 			case ChatChannelEnum.Team:
-				return 'oklch(0.8688 0.2159 128.33)' // #a9ed2d
+				return 'text-lime-600 dark:text-lime-400'
 			case ChatChannelEnum.Cards:
-				return 'oklch(87.9% 0.169 91.605)' // not real
+				return 'text-yellow-600 dark:text-yellow-400'
 			case ChatChannelEnum.Global:
+				return 'text-slate-800 dark:text-slate-300'
 			case ChatChannelEnum.Server:
+				return 'text-orange-600 dark:text-orange-400'
 			case ChatChannelEnum.Local:
+				return 'text-gray-600 dark:text-gray-400'
 			case ChatChannelEnum.Clan:
+				return 'text-purple-600 dark:text-purple-400'
 			case ChatChannelEnum.ExternalDM:
+				return 'text-pink-600 dark:text-pink-400'
 			default:
 				return ''
 		}
 	}
 
-	function getUserNameColor(id: bigint): string {
+	function getUserNameColorClasses(id: bigint): string {
 		if (isSteamId(id)) {
-			return 'oklch(0.7228 0.149269 250.6392)' // #55aaff
+			return 'text-sky-600 dark:text-sky-500'
 		} else {
 			return ''
 		}
 	}
 
+	function getSteamProfileLink(id: bigint) {
+		return `https://steamcommunity.com/profiles/${id}`
+	}
+
 	const userId = stringToSteamId(entry.UserId)
-	// const isPlayer = isSteamId(userId)
+	const isPlayer = isSteamId(userId)
 
 	const formattedDate = formatDate(epochToDate(entry.Time))
 	const channelName = ChatChannelEnum[entry.Channel]
-	const channelColor = getChannelColor(entry.Channel)
-	const userNameColor = getUserNameColor(userId)
+	const channelClasses = getChannelColorClasses(entry.Channel)
+	const userNameClasses = getUserNameColorClasses(userId)
 </script>
 
-<div class="flex gap-1">
+<div class="flex flex-wrap gap-1 md:flex-nowrap">
 	<span class="mr-2 text-cyan-500 dark:text-cyan-400">{formattedDate}</span>
-	<span style:color={channelColor}>[{channelName}]</span>
-	<span style:color={userNameColor}>{entry.Username}:</span>
+	<span class={channelClasses}>[{channelName}]</span>
+	{#if isPlayer}
+		<a class={userNameClasses} href={getSteamProfileLink(userId)} target="_blank">{entry.Username}:</a>
+	{:else}
+		<span class={userNameClasses}>{entry.Username}:</span>
+	{/if}
 	<span class="text-pretty whitespace-pre-wrap">
 		{entry.Message}
 	</span>
