@@ -3,6 +3,7 @@
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 	import { onDestroy, onMount } from 'svelte'
 	import { parseConfigContentGzip } from './rust-rcon-plugin-configs'
+	import { constructRpcCommand, RpcIds } from './rust-rcon-rpc'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerPluginConfigsStore, type ServerPluginConfigsStore } from './server-plugin-configs.svelte'
 
@@ -26,7 +27,9 @@
 	let dom: HTMLDivElement | undefined = $state()
 
 	onMount(async () => {
-		const resp = await server.sendCommandGetResponse('c.webrcon.rpc 2553096967 NTeleportation.json')
+		const resp = await server.sendCommandGetResponse(
+			constructRpcCommand(RpcIds.GetConfigContent, ['NTeleportation.json', '--gzip'])
+		)
 		if (!resp) {
 			console.error('Failed to get configs')
 			return
@@ -52,7 +55,7 @@
 
 <div class="bg-card rounded-md border p-2">
 	<div bind:this={dom} class="h-[600px] overflow-y-scroll overscroll-contain"></div>
-	{#each store.infos as info}
+	{#each store.infos as info (info.Name)}
 		{info.Name}
 	{/each}
 </div>
