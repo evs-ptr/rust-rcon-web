@@ -9,7 +9,8 @@
 	import { constructRpcCommand, RpcIds } from './rust-rcon-rpc'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerPluginConfigsStore, type ServerPluginConfigsStore } from './server-plugin-configs.svelte'
-	let editor: Monaco.editor.IStandaloneCodeEditor
+
+	let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state()
 	let monaco: typeof Monaco
 
 	interface Props {
@@ -78,20 +79,39 @@
 		editor?.dispose()
 	}
 
+	function writeConfig() {
+		const content = editor?.getValue()
+
+		if (content != null) {
+			store.writeConfig(server, content)
+		}
+	}
+
 	onDestroy(() => {
 		cleanUpEditor()
 	})
 </script>
 
-<div class="bg-card flex rounded-md border">
-	<div class="flex flex-col gap-1">
-		{#each store.infos as info (info.Name)}
-			<Button onclick={() => (store.selectedFile = info.Name)} variant="ghost">
-				{info.Name}
-			</Button>
-		{/each}
+<div class="flex flex-col gap-2">
+	<div class="bg-card flex h-[700px] rounded-md border">
+		<div class="flex max-w-48 flex-col gap-1">
+			{#each store.infos as info (info.Name)}
+				<Button
+					onclick={() => (store.selectedFile = info.Name)}
+					variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
+				>
+					{info.Name}
+				</Button>
+			{/each}
+		</div>
+		{#if store.selectedFile}
+			<div class="w-full" bind:this={dom}></div>
+		{/if}
 	</div>
-	{#if store.selectedFile}
-		<div style="height: 700px;" bind:this={dom}></div>
-	{/if}
+
+	<div class="flex justify-end gap-2">
+		{#if store.selectedFile && editor}
+			<Button onclick={() => writeConfig()}>Save</Button>
+		{/if}
+	</div>
 </div>

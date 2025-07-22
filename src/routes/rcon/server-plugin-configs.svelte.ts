@@ -1,6 +1,6 @@
 import type { ConfigGlobal } from '$lib/config-global.svelte'
 import { parseFilesInfo } from './rust-rcon-plugin-configs'
-import { constructRpcCommand, RpcIds, type RConFileInfo } from './rust-rcon-rpc'
+import { compressStringToBase64, constructRpcCommand, RpcIds, type RConFileInfo } from './rust-rcon-rpc'
 import type { RustServer } from './rust-server.svelte'
 
 export class ServerPluginConfigsStore {
@@ -22,6 +22,20 @@ export class ServerPluginConfigsStore {
 
 		const infos = parseFilesInfo(resp)
 		this.infos = infos ?? []
+	}
+
+	async writeConfig(server: RustServer, content: string) {
+		if (!this.selectedFile) {
+			return
+		}
+
+		const payload = await compressStringToBase64(content)
+
+		const resp = await server.sendCommandGetResponse(
+			constructRpcCommand(RpcIds.SetConfigContent, [this.selectedFile, payload, '--gzip'])
+		)
+
+		console.log(resp)
 	}
 
 	destroy() {}
