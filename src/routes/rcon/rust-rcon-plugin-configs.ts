@@ -16,10 +16,15 @@ export enum RConErrorEnum {
 	NoSuchFile = 2,
 }
 
+export interface RpcRepsonse<T> {
+	RpcId: number
+	Value: T
+}
+
 export function parseFilesInfo(message: CommandResponse): RConFileInfo[] | null {
 	try {
-		const filesInfo = JSON.parse(message.Message) as RConFileInfo[]
-		return filesInfo
+		const filesInfo = JSON.parse(message.Message) as RpcRepsonse<RConFileInfo[]>
+		return filesInfo.Value
 	} catch (error) {
 		console.error('Error while parsing files info', error)
 		return null
@@ -28,8 +33,8 @@ export function parseFilesInfo(message: CommandResponse): RConFileInfo[] | null 
 
 export function parseFileInfo(message: CommandResponse): RConFileInfo | null {
 	try {
-		const fileInfo = JSON.parse(message.Message) as RConFileInfo
-		return fileInfo
+		const fileInfo = JSON.parse(message.Message) as RpcRepsonse<RConFileInfo>
+		return fileInfo.Value
 	} catch (error) {
 		console.error('Error while parsing file info', error)
 		return null
@@ -38,8 +43,8 @@ export function parseFileInfo(message: CommandResponse): RConFileInfo | null {
 
 export function parseError(message: CommandResponse): RConError | null {
 	try {
-		const error = JSON.parse(message.Message) as RConError
-		return error
+		const error = JSON.parse(message.Message) as RpcRepsonse<RConError>
+		return error.Value
 	} catch (error) {
 		console.error('Error while parsing error', error)
 		return null
@@ -48,8 +53,8 @@ export function parseError(message: CommandResponse): RConError | null {
 
 export async function parseConfigContentGzip(message: CommandResponse): Promise<string | null> {
 	try {
-		const configContent = JSON.parse(message.Message) as string
-		return await decompressBase64ToString(configContent)
+		const configContent = JSON.parse(message.Message) as RpcRepsonse<string>
+		return await decompressBase64ToString(configContent.Value)
 	} catch (error) {
 		console.error('Error while parsing config content', error)
 		return null
