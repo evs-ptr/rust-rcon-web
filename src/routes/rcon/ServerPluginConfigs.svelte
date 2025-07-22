@@ -23,7 +23,6 @@
 		store.tryPopulate(server)
 	})
 
-	let value = $state('')
 	let dom: HTMLDivElement | undefined = $state()
 
 	onMount(async () => {
@@ -39,12 +38,20 @@
 			console.error('Failed to parse configs')
 			return
 		}
-		value = content
-		monaco = (await import('./monaco')).default
 
-		editor = monaco.editor.create(dom!)
-		const model = monaco.editor.createModel(value, 'json')
-		editor.setModel(model)
+		monaco = (await import('./monaco')).default
+		monaco.editor.defineTheme('default', {
+			base: 'vs-dark',
+			inherit: true,
+			rules: [],
+			colors: {},
+		})
+		monaco.editor.setTheme('default')
+		editor = monaco.editor.create(dom!, {
+			value: content,
+			language: 'json',
+			automaticLayout: true,
+		})
 	})
 
 	onDestroy(() => {
