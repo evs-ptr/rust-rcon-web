@@ -3,6 +3,7 @@
 	import type { RustServer } from './rust-server.svelte'
 	import ServerChat from './ServerChat.svelte'
 	import ServerInfo from './ServerInfo.svelte'
+	import ServerPluginConfigs from './ServerPluginConfigs.svelte'
 
 	interface Props {
 		server: RustServer
@@ -10,7 +11,7 @@
 
 	let { server }: Props = $props()
 
-	let existingTabs: (typeof server.configServer.selectedTab)[] = ['none', 'info', 'chat']
+	let existingTabs: (typeof server.configServer.selectedTab)[] = ['none', 'info', 'chat', 'pluginConfigs']
 </script>
 
 <div class="flex flex-col gap-2">
@@ -27,5 +28,7 @@
 		<ServerInfo {server} />
 	{:else if server.configServer.selectedTab == 'chat'}
 		<ServerChat {server} />
+	{:else if server.configServer.selectedTab == 'pluginConfigs'}
+		<ServerPluginConfigs {server} />
 	{/if}
 </div>

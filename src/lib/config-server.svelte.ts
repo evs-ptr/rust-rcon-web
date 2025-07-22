@@ -22,7 +22,7 @@ export class ConfigServer extends StorageSynced {
 	savePassword: boolean = $state(false)
 	useSecureWebsocket: boolean = $state(false)
 
-	selectedTab: 'none' | 'info' | 'chat' = $state('none')
+	selectedTab: 'none' | 'info' | 'chat' | 'pluginConfigs' = $state('none')
 
 	private effectCleanup: () => void
 
