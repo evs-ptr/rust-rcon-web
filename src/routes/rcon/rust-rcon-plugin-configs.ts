@@ -1,3 +1,5 @@
+import type { CommandResponse } from './rust-rcon.types'
+
 export interface RConFileInfo {
 	Name: string
 	ModEpoch: number
@@ -12,6 +14,46 @@ export interface RConError {
 export enum RConErrorEnum {
 	InvalidArgs = 1,
 	NoSuchFile = 2,
+}
+
+export function parseFilesInfo(message: CommandResponse): RConFileInfo[] | null {
+	try {
+		const filesInfo = JSON.parse(message.Message) as RConFileInfo[]
+		return filesInfo
+	} catch (error) {
+		console.error('Error while parsing files info', error)
+		return null
+	}
+}
+
+export function parseFileInfo(message: CommandResponse): RConFileInfo | null {
+	try {
+		const fileInfo = JSON.parse(message.Message) as RConFileInfo
+		return fileInfo
+	} catch (error) {
+		console.error('Error while parsing file info', error)
+		return null
+	}
+}
+
+export function parseError(message: CommandResponse): RConError | null {
+	try {
+		const error = JSON.parse(message.Message) as RConError
+		return error
+	} catch (error) {
+		console.error('Error while parsing error', error)
+		return null
+	}
+}
+
+export async function parseConfigContentGzip(message: CommandResponse): Promise<string | null> {
+	try {
+		const configContent = JSON.parse(message.Message) as string
+		return await decompressBase64ToString(configContent)
+	} catch (error) {
+		console.error('Error while parsing config content', error)
+		return null
+	}
 }
 
 export async function compressStringToBase64(str: string): Promise<string> {
