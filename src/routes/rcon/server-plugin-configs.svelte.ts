@@ -7,6 +7,7 @@ export class ServerPluginConfigsStore {
 	public readonly config: ConfigGlobal
 
 	infos: RConFileInfo[] = $state([])
+	selectedFile: string = $state('')
 
 	constructor(config: ConfigGlobal) {
 		this.config = config
