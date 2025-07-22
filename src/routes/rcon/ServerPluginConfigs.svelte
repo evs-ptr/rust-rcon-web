@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
+	import { mode } from 'mode-watcher'
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 	import { onDestroy, onMount } from 'svelte'
 	import { parseConfigContentGzip } from './rust-rcon-plugin-configs'
@@ -23,7 +24,15 @@
 		store.tryPopulate(server)
 	})
 
+	$effect(() => {
+		updateTheme()
+	})
+
 	let dom: HTMLDivElement | undefined = $state()
+
+	function updateTheme() {
+		mode.current === 'dark' ? monaco?.editor.setTheme('vs-dark') : monaco?.editor.setTheme('vs')
+	}
 
 	onMount(async () => {
 		const resp = await server.sendCommandGetResponse(
@@ -40,13 +49,7 @@
 		}
 
 		monaco = (await import('./monaco')).default
-		monaco.editor.defineTheme('default', {
-			base: 'vs-dark',
-			inherit: true,
-			rules: [],
-			colors: {},
-		})
-		monaco.editor.setTheme('default')
+		updateTheme()
 		editor = monaco.editor.create(dom!, {
 			value: content,
 			language: 'json',
@@ -60,8 +63,8 @@
 	})
 </script>
 
-<div class="bg-card rounded-md border p-2">
-	<div bind:this={dom} class="h-[600px] overflow-y-scroll overscroll-contain"></div>
+<div class="bg-card rounded-md border">
+	<div bind:this={dom} class="h-[700px]"></div>
 	{#each store.infos as info (info.Name)}
 		{info.Name}
 	{/each}
