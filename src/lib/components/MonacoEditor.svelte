@@ -6,12 +6,12 @@
 
 	let {
 		value,
-		language = 'json',
+		language,
 		onchange,
 		onsave,
 	}: {
 		value: string
-		language?: string
+		language: string
 		onchange?: (value: string) => void
 		onsave?: () => void
 	} = $props()
@@ -38,7 +38,7 @@
 
 		editor.onDidChangeModelContent(() => {
 			const currentValue = editor?.getValue()
-			if (currentValue !== undefined) {
+			if (currentValue !== undefined && currentValue !== value) {
 				onchange?.(currentValue)
 			}
 		})
@@ -54,10 +54,14 @@
 	}
 
 	function updateTheme() {
+		if (!monaco) {
+			return
+		}
+
 		if (mode.current === 'dark') {
-			monaco?.editor.setTheme('vs-dark')
+			monaco.editor.setTheme('vs-dark')
 		} else {
-			monaco?.editor.setTheme('vs')
+			monaco.editor.setTheme('vs')
 		}
 	}
 
@@ -66,12 +70,33 @@
 	})
 
 	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		mode.current
 		updateTheme()
 	})
 
 	$effect(() => {
 		if (dom) {
 			untrack(updateEditor)
+		}
+	})
+
+	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		value
+		if (editor && value != editor.getValue()) {
+			editor.setValue(value)
+		}
+	})
+
+	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		language
+		if (editor && language) {
+			const model = editor.getModel()
+			if (model) {
+				monaco.editor.setModelLanguage(model, language)
+			}
 		}
 	})
 </script>

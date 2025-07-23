@@ -8,6 +8,7 @@
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import FileText from '@lucide/svelte/icons/file-text'
 	import Loader2 from '@lucide/svelte/icons/loader-2'
+	import { fade } from 'svelte/transition'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerPluginConfigsStore, type ServerPluginConfigsStore } from './server-plugin-configs.svelte'
 
@@ -29,6 +30,8 @@
 
 	let config = getConfigGlobalContext()
 	let store: ServerPluginConfigsStore = $derived(getServerPluginConfigsStore(server.id, config))
+
+	let editorLanguage = $derived(getLanguageFromFileName(store.selectedFile))
 
 	$effect(() => {
 		store.tryPopulate(server)
@@ -92,6 +95,24 @@
 	function closeDiscardDialog() {
 		showDiscardDialog = false
 		pendingFileSelection = null
+	}
+
+	function getLanguageFromFileName(fileName: string): string {
+		if (!fileName) {
+			return 'json'
+		}
+		const extension = fileName.split('.').pop()?.toLowerCase()
+		switch (extension) {
+			case 'json':
+				return 'json'
+			case 'toml':
+				return 'toml'
+			case 'yaml':
+			case 'yml':
+				return 'yaml'
+			default:
+				return 'json'
+		}
 	}
 </script>
 
@@ -160,20 +181,22 @@
 
 		<div class="relative w-full">
 			{#if store.selectedFile}
+				<MonacoEditor
+					value={editorContent}
+					language={editorLanguage}
+					onchange={(v) => {
+						if (editorContent !== v) {
+							isDirty = true
+							editorContent = v
+						}
+						saveState = 'idle'
+					}}
+					onsave={writeConfig}
+				/>
 				{#if isLoading}
-					<div class="flex h-full items-center justify-center">
+					<div class="absolute inset-0 flex items-center justify-center bg-black/20" transition:fade>
 						<Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
 					</div>
-				{:else}
-					<MonacoEditor
-						value={editorContent}
-						onchange={(v) => {
-							editorContent = v
-							isDirty = true
-							saveState = 'idle'
-						}}
-						onsave={writeConfig}
-					/>
 				{/if}
 			{:else}
 				<div class="text-muted-foreground flex h-full flex-1 items-center justify-center">
