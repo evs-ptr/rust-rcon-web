@@ -14,7 +14,7 @@
 	let existingTabs: (typeof server.configServer.selectedTab)[] = ['none', 'info', 'chat', 'pluginConfigs']
 </script>
 
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-4">
 	<div class="flex flex-row gap-2">
 		{#each existingTabs as tabName (tabName)}
 			<Button
