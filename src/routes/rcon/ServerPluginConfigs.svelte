@@ -1,21 +1,25 @@
 <script lang="ts">
-	import { browser } from '$app/environment'
+	import MonacoEditor from '$lib/components/MonacoEditor.svelte'
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { Separator } from '$lib/components/ui/separator/index.js'
 	import * as Sheet from '$lib/components/ui/sheet/index.js'
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import FileText from '@lucide/svelte/icons/file-text'
-	import { mode } from 'mode-watcher'
-	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
-	import { untrack } from 'svelte'
+	import Loader2 from '@lucide/svelte/icons/loader-2'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerPluginConfigsStore, type ServerPluginConfigsStore } from './server-plugin-configs.svelte'
 
-	let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state()
-	let monaco: typeof Monaco
+	type SaveState = 'idle' | 'saving' | 'saved' | 'error'
+
 	let sheetOpen = $state(false)
 	let isLoading = $state(false)
+	let editorContent = $state('')
+	let isDirty = $state(false)
+	let showDiscardDialog = $state(false)
+	let pendingFileSelection: string | null = $state(null)
+	let saveState: SaveState = $state('idle')
 
 	interface Props {
 		server: RustServer
@@ -26,112 +30,115 @@
 	let config = getConfigGlobalContext()
 	let store: ServerPluginConfigsStore = $derived(getServerPluginConfigsStore(server.id, config))
 
-	let dom: HTMLDivElement | undefined = $state()
-
 	$effect(() => {
 		store.tryPopulate(server)
 	})
 
-	function updateTheme() {
-		if (mode.current === 'dark') {
-			monaco?.editor.setTheme('vs-dark')
-		} else {
-			monaco?.editor.setTheme('vs')
-		}
-	}
-
 	$effect(() => {
-		updateTheme()
-	})
-
-	$effect(() => {
-		if (store.selectedFile && dom) {
-			untrack(updateEditor)
-		}
-		return () => {
-			cleanUpEditor()
+		if (store.selectedFile) {
+			loadFileContent(store.selectedFile)
 		}
 	})
 
-	async function updateEditor() {
-		if (!browser || !dom) {
-			return
-		}
-
-		if (!store.selectedFile) {
-			return
-		}
-
+	async function loadFileContent(fileName: string) {
 		isLoading = true
+		isDirty = false
+		saveState = 'idle'
 		try {
-			cleanUpEditor()
-
-			const content = await store.getConfigContent(server, store.selectedFile)
-			if (content == null) {
-				return
-			}
-
-			monaco = (await import('./monaco')).default
-			updateTheme()
-			editor = monaco.editor.create(dom, {
-				value: content,
-				language: 'json',
-				automaticLayout: true,
-			})
+			const content = await store.getConfigContent(server, fileName)
+			editorContent = content ?? ''
 		} finally {
 			isLoading = false
 		}
 	}
 
-	function cleanUpEditor() {
-		monaco?.editor.getModels().forEach((model) => model.dispose())
-		editor?.dispose()
+	async function writeConfig() {
+		if (!isDirty) {
+			return
+		}
+
+		saveState = 'saving'
+		try {
+			await store.writeConfig(server, editorContent)
+			isDirty = false
+			saveState = 'saved'
+		} catch (e) {
+			saveState = 'error'
+			console.error('Failed to save config:', e)
+		} finally {
+			setTimeout(() => {
+				saveState = 'idle'
+			}, 2000)
+		}
 	}
 
-	function writeConfig() {
-		const content = editor?.getValue()
-
-		if (content != null) {
-			store.writeConfig(server, content)
+	function handleFileSelect(fileName: string) {
+		if (isDirty) {
+			pendingFileSelection = fileName
+			showDiscardDialog = true
+		} else {
+			store.selectedFile = fileName
 		}
+	}
+
+	function confirmDiscard() {
+		if (pendingFileSelection) {
+			store.selectedFile = pendingFileSelection
+			isDirty = false
+		}
+		closeDiscardDialog()
+	}
+
+	function closeDiscardDialog() {
+		showDiscardDialog = false
+		pendingFileSelection = null
 	}
 </script>
 
 {#snippet fileList(mobile = false)}
-	<Tooltip.Provider>
-		<div class="flex flex-col gap-1">
+	<div class="flex flex-col gap-1">
+		{#if store.infos.length === 0}
+			<p class="text-muted-foreground p-4 text-center text-sm">No configuration files found.</p>
+		{:else}
 			{#each store.infos as info (info.Name)}
-				<Tooltip.Root>
-					<Tooltip.Trigger class="w-full">
-						<Button
-							onclick={() => {
-								store.selectedFile = info.Name
-								if (mobile) {
-									sheetOpen = false
-								}
-							}}
-							variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
-							class="w-full justify-start truncate"
-						>
-							{info.Name}
-						</Button>
-					</Tooltip.Trigger>
-					<Tooltip.Content>
-						<p>{info.Name}</p>
-					</Tooltip.Content>
-				</Tooltip.Root>
+				<Tooltip.Provider>
+					<Tooltip.Root>
+						<Tooltip.Trigger class="w-full">
+							<Button
+								onclick={() => {
+									handleFileSelect(info.Name)
+									if (mobile) {
+										sheetOpen = false
+									}
+								}}
+								variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
+								class="w-full justify-start truncate"
+							>
+								{#if isDirty && store.selectedFile === info.Name}
+									<span class="mr-2 text-blue-500">*</span>
+								{/if}
+								{info.Name}
+							</Button>
+						</Tooltip.Trigger>
+						<Tooltip.Content>
+							<p>{info.Name}</p>
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
 			{/each}
-		</div>
-	</Tooltip.Provider>
+		{/if}
+	</div>
 {/snippet}
 
-<div class="flex flex-col gap-4">
+<div class="flex h-full flex-col gap-4">
 	<div class="md:hidden">
 		<Sheet.Root bind:open={sheetOpen}>
 			<Sheet.Trigger class="w-full">
 				<Button variant="outline" class="w-full justify-start truncate">
 					<FileText class="mr-2 h-4 w-4" />
-					<span class="truncate">{store.selectedFile || 'Select a file'}</span>
+					<span class="truncate">
+						{#if isDirty && store.selectedFile}*{/if}{store.selectedFile || 'Select a file'}
+					</span>
 				</Button>
 			</Sheet.Trigger>
 			<Sheet.Content side="left" class="flex flex-col p-0">
@@ -153,20 +160,20 @@
 
 		<div class="relative w-full">
 			{#if store.selectedFile}
-				<div class="absolute inset-0" bind:this={dom}></div>
 				{#if isLoading}
-					{@const skeletonClass = 'bg-muted h-4 animate-pulse rounded-lg'}
-					<div class="flex flex-col gap-2 p-4">
-						<div class={[skeletonClass, 'w-1/3']}></div>
-						<div class={[skeletonClass, 'w-1/2']}></div>
-						<div class={[skeletonClass, 'w-1/4']}></div>
-						<div class={[skeletonClass, 'w-2/3']}></div>
-						<div class={[skeletonClass, 'w-3/4']}></div>
-						<div class={[skeletonClass, 'w-1/2']}></div>
-						<div class={[skeletonClass, 'w-1/5']}></div>
-						<div class={[skeletonClass, 'w-5/6']}></div>
-						<div class={[skeletonClass, 'w-2/5']}></div>
+					<div class="flex h-full items-center justify-center">
+						<Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
 					</div>
+				{:else}
+					<MonacoEditor
+						value={editorContent}
+						onchange={(v) => {
+							editorContent = v
+							isDirty = true
+							saveState = 'idle'
+						}}
+						onsave={writeConfig}
+					/>
 				{/if}
 			{:else}
 				<div class="text-muted-foreground flex h-full flex-1 items-center justify-center">
@@ -177,8 +184,56 @@
 	</div>
 
 	<div class="flex justify-end gap-2">
-		{#if store.selectedFile && editor}
-			<Button onclick={() => writeConfig()}>Save</Button>
-		{/if}
+		<Tooltip.Provider>
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+					<Button
+						onclick={writeConfig}
+						disabled={!store.selectedFile || !isDirty || saveState == 'saving' || saveState == 'saved'}
+					>
+						{#if saveState === 'saving'}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							<span>Saving...</span>
+						{:else if saveState === 'saved'}
+							<span>Saved!</span>
+						{:else if saveState === 'error'}
+							<span>Error!</span>
+						{:else}
+							<span>Save</span>
+						{/if}
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content>
+					{#if !store.selectedFile}
+						<p>Select a file to save</p>
+					{:else if !isDirty}
+						<p>No changes</p>
+					{:else if saveState == 'saving'}
+						<p>Saving...</p>
+					{:else if saveState == 'saved'}
+						<p>Saved!</p>
+					{:else if saveState == 'error'}
+						<p>Error!</p>
+					{:else}
+						<p>Save</p>
+					{/if}
+				</Tooltip.Content>
+			</Tooltip.Root>
+		</Tooltip.Provider>
 	</div>
 </div>
+
+<AlertDialog.Root bind:open={showDiscardDialog}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>You have unsaved changes</AlertDialog.Title>
+			<AlertDialog.Description>
+				Are you sure you want to discard your changes and switch to another file? Your changes will be lost.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel onclick={closeDiscardDialog}>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={confirmDiscard}>Discard Changes</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
