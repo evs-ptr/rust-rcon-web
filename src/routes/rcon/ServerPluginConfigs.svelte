@@ -17,6 +17,7 @@
 	let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state()
 	let monaco: typeof Monaco
 	let sheetOpen = $state(false)
+	let isLoading = $state(false)
 
 	interface Props {
 		server: RustServer
@@ -56,27 +57,32 @@
 			return
 		}
 
-		cleanUpEditor()
-		const resp = await server.sendCommandGetResponse(
-			constructRpcCommand(RpcIds.GetConfigContent, [store.selectedFile, '--gzip'])
-		)
-		if (!resp) {
-			console.error('Failed to get config content')
-			return
-		}
-		const content = await parseConfigContentGzip(resp)
-		if (content == null) {
-			console.error('Failed to parse config')
-			return
-		}
+		isLoading = true
+		try {
+			cleanUpEditor()
+			const resp = await server.sendCommandGetResponse(
+				constructRpcCommand(RpcIds.GetConfigContent, [store.selectedFile, '--gzip'])
+			)
+			if (!resp) {
+				console.error('Failed to get config content')
+				return
+			}
+			const content = await parseConfigContentGzip(resp)
+			if (content == null) {
+				console.error('Failed to parse config')
+				return
+			}
 
-		monaco = (await import('./monaco')).default
-		updateTheme()
-		editor = monaco.editor.create(dom, {
-			value: content,
-			language: 'json',
-			automaticLayout: true,
-		})
+			monaco = (await import('./monaco')).default
+			updateTheme()
+			editor = monaco.editor.create(dom, {
+				value: content,
+				language: 'json',
+				automaticLayout: true,
+			})
+		} finally {
+			isLoading = false
+		}
 	}
 
 	function cleanUpEditor() {
@@ -154,6 +160,20 @@
 		<div class="relative w-full">
 			{#if store.selectedFile}
 				<div class="absolute inset-0" bind:this={dom}></div>
+				{#if isLoading}
+					{@const skeletonClass = 'bg-muted h-4 animate-pulse rounded-lg'}
+					<div class="flex flex-col gap-2 p-4">
+						<div class={[skeletonClass, 'w-1/3']}></div>
+						<div class={[skeletonClass, 'w-1/2']}></div>
+						<div class={[skeletonClass, 'w-1/4']}></div>
+						<div class={[skeletonClass, 'w-2/3']}></div>
+						<div class={[skeletonClass, 'w-3/4']}></div>
+						<div class={[skeletonClass, 'w-1/2']}></div>
+						<div class={[skeletonClass, 'w-1/5']}></div>
+						<div class={[skeletonClass, 'w-5/6']}></div>
+						<div class={[skeletonClass, 'w-2/5']}></div>
+					</div>
+				{/if}
 			{:else}
 				<div class="text-muted-foreground flex h-full flex-1 items-center justify-center">
 					<span>Select a file to view its content</span>
