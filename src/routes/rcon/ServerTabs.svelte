@@ -38,6 +38,10 @@
 	{:else if server.configServer.selectedTab == 'chat'}
 		<ServerChat {server} />
 	{:else if server.configServer.selectedTab == 'pluginConfigs'}
-		<ServerPluginConfigs {server} />
+		{#if server.isCarbon}
+			<ServerPluginConfigs {server} />
+		{:else}
+			<div class="text-destructive text-center">Only available with Carbon Framework</div>
+		{/if}
 	{/if}
 </div>
