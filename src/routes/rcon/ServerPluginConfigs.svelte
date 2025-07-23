@@ -8,9 +8,7 @@
 	import FileText from '@lucide/svelte/icons/file-text'
 	import { mode } from 'mode-watcher'
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
-	import { onDestroy, untrack } from 'svelte'
-	import { parseConfigContentGzip } from './rust-rcon-plugin-configs'
-	import { constructRpcCommand, RpcIds } from './rust-rcon-rpc'
+	import { untrack } from 'svelte'
 	import type { RustServer } from './rust-server.svelte'
 	import { getServerPluginConfigsStore, type ServerPluginConfigsStore } from './server-plugin-configs.svelte'
 
@@ -35,7 +33,11 @@
 	})
 
 	function updateTheme() {
-		mode.current === 'dark' ? monaco?.editor.setTheme('vs-dark') : monaco?.editor.setTheme('vs')
+		if (mode.current === 'dark') {
+			monaco?.editor.setTheme('vs-dark')
+		} else {
+			monaco?.editor.setTheme('vs')
+		}
 	}
 
 	$effect(() => {
@@ -45,6 +47,9 @@
 	$effect(() => {
 		if (store.selectedFile && dom) {
 			untrack(updateEditor)
+		}
+		return () => {
+			cleanUpEditor()
 		}
 	})
 
@@ -60,16 +65,9 @@
 		isLoading = true
 		try {
 			cleanUpEditor()
-			const resp = await server.sendCommandGetResponse(
-				constructRpcCommand(RpcIds.GetConfigContent, [store.selectedFile, '--gzip'])
-			)
-			if (!resp) {
-				console.error('Failed to get config content')
-				return
-			}
-			const content = await parseConfigContentGzip(resp)
+
+			const content = await store.getConfigContent(server, store.selectedFile)
 			if (content == null) {
-				console.error('Failed to parse config')
 				return
 			}
 
@@ -97,10 +95,6 @@
 			store.writeConfig(server, content)
 		}
 	}
-
-	onDestroy(() => {
-		cleanUpEditor()
-	})
 </script>
 
 {#snippet fileList(mobile = false)}
