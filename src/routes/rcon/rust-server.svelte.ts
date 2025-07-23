@@ -12,6 +12,9 @@ export class RustServer {
 
 	public displayName: string
 
+	public isOxide: boolean = $state(false)
+	public isCarbon: boolean = $state(false)
+
 	private rcon: RustRconConnection | null = $state(null)
 
 	constructor(configServer: ConfigServer) {
@@ -49,7 +52,18 @@ export class RustServer {
 
 		this.connectionWasEstablished = true
 
+		this.updateFrameworkFlags()
+
 		return true
+	}
+
+	private updateFrameworkFlags() {
+		this.sendCommandGetResponse('o.version')
+			.then(() => (this.isOxide = true))
+			.catch(() => (this.isOxide = false))
+		this.sendCommandGetResponse('c.version')
+			.then(() => (this.isCarbon = true))
+			.catch(() => (this.isCarbon = false))
 	}
 
 	subscribeOnMessageGeneral(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
