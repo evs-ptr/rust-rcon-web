@@ -2,8 +2,10 @@
 	import { browser } from '$app/environment'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { Separator } from '$lib/components/ui/separator/index.js'
+	import * as Sheet from '$lib/components/ui/sheet/index.js'
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
+	import FileText from '@lucide/svelte/icons/file-text'
 	import { mode } from 'mode-watcher'
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
 	import { onDestroy, untrack } from 'svelte'
@@ -14,6 +16,7 @@
 
 	let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state()
 	let monaco: typeof Monaco
+	let sheetOpen = $state(false)
 
 	interface Props {
 		server: RustServer
@@ -39,7 +42,7 @@
 	})
 
 	$effect(() => {
-		if (store.selectedFile) {
+		if (store.selectedFile && dom) {
 			untrack(updateEditor)
 		}
 	})
@@ -69,7 +72,7 @@
 
 		monaco = (await import('./monaco')).default
 		updateTheme()
-		editor = monaco.editor.create(dom!, {
+		editor = monaco.editor.create(dom, {
 			value: content,
 			language: 'json',
 			automaticLayout: true,
@@ -94,38 +97,69 @@
 	})
 </script>
 
-<h1>UNDER CONSTRUCTION</h1>
-
-<div class="flex flex-col gap-2">
-	<div class="bg-card flex h-[700px] rounded-md border">
-		<div class="flex w-52 flex-col gap-1 overflow-x-auto overflow-y-auto overscroll-contain p-2">
+{#snippet fileList(mobile = false)}
+	<Tooltip.Provider>
+		<div class="flex flex-col gap-1">
 			{#each store.infos as info (info.Name)}
-				<Tooltip.Provider>
-					<Tooltip.Root>
-						<Tooltip.Trigger class="w-full">
-							<Button
-								onclick={() => (store.selectedFile = info.Name)}
-								variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
-								class="w-full justify-start truncate"
-							>
-								{info.Name}
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>{info.Name}</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-				</Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger class="w-full">
+						<Button
+							onclick={() => {
+								store.selectedFile = info.Name
+								if (mobile) {
+									sheetOpen = false
+								}
+							}}
+							variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
+							class="w-full justify-start truncate"
+						>
+							{info.Name}
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content>
+						<p>{info.Name}</p>
+					</Tooltip.Content>
+				</Tooltip.Root>
 			{/each}
 		</div>
-		<Separator orientation="vertical" />
-		{#if store.selectedFile}
-			<div class="w-full" bind:this={dom}></div>
-		{:else}
-			<div class="text-muted-foreground flex flex-1 items-center justify-center">
-				<span>Select a file</span>
-			</div>
-		{/if}
+	</Tooltip.Provider>
+{/snippet}
+
+<div class="flex flex-col gap-4">
+	<div class="md:hidden">
+		<Sheet.Root bind:open={sheetOpen}>
+			<Sheet.Trigger class="w-full">
+				<Button variant="outline" class="w-full justify-start truncate">
+					<FileText class="mr-2 h-4 w-4" />
+					<span class="truncate">{store.selectedFile || 'Select a file'}</span>
+				</Button>
+			</Sheet.Trigger>
+			<Sheet.Content side="left" class="flex flex-col p-0">
+				<Sheet.Header class="p-4">
+					<Sheet.Title>Configuration Files</Sheet.Title>
+				</Sheet.Header>
+				<div class="overflow-y-auto p-2">
+					{@render fileList(true)}
+				</div>
+			</Sheet.Content>
+		</Sheet.Root>
+	</div>
+
+	<div class="bg-card flex h-[700px] rounded-md border">
+		<div class="hidden w-52 flex-col overflow-y-auto overscroll-contain p-2 md:flex md:resize-x">
+			{@render fileList()}
+		</div>
+		<Separator orientation="vertical" class="hidden md:block" />
+
+		<div class="relative w-full">
+			{#if store.selectedFile}
+				<div class="absolute inset-0" bind:this={dom}></div>
+			{:else}
+				<div class="text-muted-foreground flex h-full flex-1 items-center justify-center">
+					<span>Select a file to view its content</span>
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<div class="flex justify-end gap-2">
