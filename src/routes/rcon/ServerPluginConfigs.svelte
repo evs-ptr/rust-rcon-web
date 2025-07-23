@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment'
 	import { Button } from '$lib/components/ui/button/index.js'
+	import { Separator } from '$lib/components/ui/separator/index.js'
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import { mode } from 'mode-watcher'
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
@@ -96,18 +98,33 @@
 
 <div class="flex flex-col gap-2">
 	<div class="bg-card flex h-[700px] rounded-md border">
-		<div class="flex max-w-48 flex-col gap-1">
+		<div class="flex w-52 flex-col gap-1 overflow-x-auto overflow-y-auto overscroll-contain p-2">
 			{#each store.infos as info (info.Name)}
-				<Button
-					onclick={() => (store.selectedFile = info.Name)}
-					variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
-				>
-					{info.Name}
-				</Button>
+				<Tooltip.Provider>
+					<Tooltip.Root>
+						<Tooltip.Trigger class="w-full">
+							<Button
+								onclick={() => (store.selectedFile = info.Name)}
+								variant={store.selectedFile === info.Name ? 'secondary' : 'ghost'}
+								class="w-full justify-start truncate"
+							>
+								{info.Name}
+							</Button>
+						</Tooltip.Trigger>
+						<Tooltip.Content>
+							<p>{info.Name}</p>
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
 			{/each}
 		</div>
+		<Separator orientation="vertical" />
 		{#if store.selectedFile}
 			<div class="w-full" bind:this={dom}></div>
+		{:else}
+			<div class="text-muted-foreground flex flex-1 items-center justify-center">
+				<span>Select a file</span>
+			</div>
 		{/if}
 	</div>
 
