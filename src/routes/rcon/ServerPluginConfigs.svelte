@@ -184,6 +184,7 @@
 				<MonacoEditor
 					value={editorContent}
 					language={editorLanguage}
+					key={server.id + '_' + store.selectedFile}
 					onchange={(v) => {
 						if (editorContent !== v) {
 							isDirty = true

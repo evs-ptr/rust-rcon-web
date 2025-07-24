@@ -1,38 +1,42 @@
+<script lang="ts" module>
+	export const viewStates = new Map<string, Monaco.editor.ICodeEditorViewState | null>()
+</script>
+
 <script lang="ts">
 	import { browser } from '$app/environment'
 	import { mode } from 'mode-watcher'
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api'
-	import { onDestroy, tick, untrack } from 'svelte'
+	import { onDestroy } from 'svelte'
 
 	let {
 		value,
 		language,
+		key,
 		onchange,
 		onsave,
 	}: {
 		value: string
 		language: string
+		key: string
 		onchange?: (value: string) => void
 		onsave?: () => void
 	} = $props()
 
-	let dom: HTMLDivElement | undefined = $state()
-	let editor: Monaco.editor.IStandaloneCodeEditor | undefined
-	let monaco: typeof Monaco
+	let dom: HTMLDivElement | undefined = $state.raw()
+	let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state.raw()
+	let monaco: typeof Monaco | undefined = $state.raw()
 
-	async function updateEditor() {
-		await tick()
-		if (!browser || !dom) {
+	let currentKey: string | undefined = $state()
+
+	async function initializeEditor() {
+		if (editor || !browser) {
 			return
 		}
 
-		cleanUpEditor()
-
 		monaco = (await import('../../routes/rcon/monaco')).default
-		updateTheme()
-		editor = monaco.editor.create(dom, {
-			value: value,
-			language: language,
+
+		editor = monaco.editor.create(dom!, {
+			model: null,
 			automaticLayout: true,
 		})
 
@@ -46,58 +50,82 @@
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
 			onsave?.()
 		})
-	}
 
-	function cleanUpEditor() {
-		monaco?.editor.getModels().forEach((model) => model.dispose())
-		editor?.dispose()
+		updateTheme()
 	}
 
 	function updateTheme() {
-		if (!monaco) {
+		if (!monaco || !editor) {
+			return
+		}
+		const newTheme = mode.current === 'dark' ? 'vs-dark' : 'vs'
+		monaco.editor.setTheme(newTheme)
+	}
+
+	$effect(() => {
+		if (!browser) {
 			return
 		}
 
-		if (mode.current === 'dark') {
-			monaco.editor.setTheme('vs-dark')
-		} else {
-			monaco.editor.setTheme('vs')
-		}
-	}
+		initializeEditor()
 
-	onDestroy(() => {
-		cleanUpEditor()
+		if (!editor || !monaco) {
+			return
+		}
+
+		if (currentKey && currentKey !== key) {
+			const lastModel = monaco.editor.getModel(monaco.Uri.parse(currentKey))
+			if (lastModel) {
+				viewStates.set(currentKey, editor.saveViewState())
+			}
+		}
+
+		let newModel = monaco.editor.getModel(monaco.Uri.parse(key))
+		if (!newModel) {
+			newModel = monaco.editor.createModel(value, language, monaco.Uri.parse(key))
+		}
+
+		if (editor.getModel() !== newModel) {
+			editor.setModel(newModel)
+		}
+
+		const savedViewState = viewStates.get(key)
+		if (savedViewState) {
+			editor.restoreViewState(savedViewState)
+		}
+
+		editor.focus()
+
+		currentKey = key
 	})
 
 	$effect(() => {
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		if (!editor || !monaco) {
+			return
+		}
+
+		const model = monaco.editor.getModel(monaco.Uri.parse(key))
+		if (model && model.getValue() !== value) {
+			model.pushEditOperations(
+				[],
+				[
+					{
+						range: model.getFullModelRange(),
+						text: value,
+					},
+				],
+				() => null
+			)
+		}
+	})
+
+	$effect(() => {
 		mode.current
 		updateTheme()
 	})
 
-	$effect(() => {
-		if (dom) {
-			untrack(updateEditor)
-		}
-	})
-
-	$effect(() => {
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		value
-		if (editor && value != editor.getValue()) {
-			editor.setValue(value)
-		}
-	})
-
-	$effect(() => {
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		language
-		if (editor && language) {
-			const model = editor.getModel()
-			if (model) {
-				monaco.editor.setModelLanguage(model, language)
-			}
-		}
+	onDestroy(() => {
+		editor?.dispose()
 	})
 </script>
 
