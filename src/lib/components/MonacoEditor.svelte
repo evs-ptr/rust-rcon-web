@@ -120,6 +120,7 @@
 	})
 
 	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		mode.current
 		updateTheme()
 	})
