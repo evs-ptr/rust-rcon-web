@@ -1,6 +1,5 @@
 <script lang="ts">
 	import MonacoEditor from '$lib/components/MonacoEditor.svelte'
-	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { Separator } from '$lib/components/ui/separator/index.js'
 	import * as Sheet from '$lib/components/ui/sheet/index.js'
@@ -18,8 +17,6 @@
 	let isLoading = $state(false)
 	let editorContent = $state('')
 	let isDirty = $state(false)
-	let showDiscardDialog = $state(false)
-	let pendingFileSelection: string | null = $state(null)
 	let saveState: SaveState = $state('idle')
 
 	interface Props {
@@ -76,25 +73,7 @@
 	}
 
 	function handleFileSelect(fileName: string) {
-		if (isDirty) {
-			pendingFileSelection = fileName
-			showDiscardDialog = true
-		} else {
-			store.selectedFile = fileName
-		}
-	}
-
-	function confirmDiscard() {
-		if (pendingFileSelection) {
-			store.selectedFile = pendingFileSelection
-			isDirty = false
-		}
-		closeDiscardDialog()
-	}
-
-	function closeDiscardDialog() {
-		showDiscardDialog = false
-		pendingFileSelection = null
+		store.selectedFile = fileName
 	}
 
 	function getLanguageFromFileName(fileName: string): string {
@@ -246,18 +225,3 @@
 		</Tooltip.Provider>
 	</div>
 </div>
-
-<AlertDialog.Root bind:open={showDiscardDialog}>
-	<AlertDialog.Content>
-		<AlertDialog.Header>
-			<AlertDialog.Title>You have unsaved changes</AlertDialog.Title>
-			<AlertDialog.Description>
-				Are you sure you want to discard your changes and switch to another file? Your changes will be lost.
-			</AlertDialog.Description>
-		</AlertDialog.Header>
-		<AlertDialog.Footer>
-			<AlertDialog.Cancel onclick={closeDiscardDialog}>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action onclick={confirmDiscard}>Discard Changes</AlertDialog.Action>
-		</AlertDialog.Footer>
-	</AlertDialog.Content>
-</AlertDialog.Root>
