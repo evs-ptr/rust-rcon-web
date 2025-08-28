@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { type ChatEntry, ChatChannelEnum } from './rust-rcon-chat'
+	import { ChatChannelEnum, type ChatEntry } from './rust-rcon-chat'
 	import { LogType } from './rust-rcon.types'
-	import type { ServerConsoleMessage } from './server-console.svelte'
+	import { ServerConsoleMessageType, type ServerConsoleMessage } from './server-console.svelte'
 
 	interface Props {
 		message: ServerConsoleMessage
@@ -23,7 +23,18 @@
 		return `[${ChatChannelEnum[chatEntry.Channel]}] ${chatEntry.Username}(${chatEntry.UserId}): ${chatEntry.Message.trim()}`
 	}
 
-	function getLogTypeClasses(logType: LogType): string[] {
+	function getLogTypeClasses(logType: LogType, consoleMessageType: ServerConsoleMessageType): string[] {
+		if (consoleMessageType === ServerConsoleMessageType.UserCommand) {
+			return [
+				'pl-2',
+				'border-l-2',
+				'border-primary',
+				'text-primary',
+				'bg-primary/10',
+				'rounded-r',
+				'font-medium',
+			]
+		}
 		switch (logType) {
 			case LogType.Error:
 				return [
@@ -66,7 +77,7 @@
 </div>
 
 {#snippet logText(message: ServerConsoleMessage)}
-	<span class={['whitespace-pre', ...getLogTypeClasses(message.logType)]}>
+	<span class={['whitespace-pre', ...getLogTypeClasses(message.logType, message.type)]}>
 		{@render txt(message.message)}
 	</span>
 {/snippet}
