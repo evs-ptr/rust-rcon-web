@@ -101,7 +101,7 @@
 	}
 </script>
 
-<div class="flex w-full max-w-sm flex-col gap-6 self-center text-center">
+<div class="mt-[max(0px,calc(50vh-28rem))] flex w-full max-w-sm flex-col gap-6 self-center text-center">
 	<div class="flex flex-col gap-2">
 		<h1 class="text-3xl font-bold">Connect to Server</h1>
 		<p class="text-muted-foreground text-balance">Enter your server details to connect via RCon.</p>
