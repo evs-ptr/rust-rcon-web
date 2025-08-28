@@ -30,8 +30,11 @@
 	{#each serversManager.servers as server (server.id)}
 		<div class="flex items-center">
 			<Button
-				variant="outline"
-				class={{ 'ring-primary/40 ring': server === serversManager.selectedServer, 'rounded-r-none': true }}
+				variant={server === serversManager.selectedServer ? 'outline' : 'ghost'}
+				class={{
+					'rounded-r-none': true,
+					'border border-transparent': server !== serversManager.selectedServer,
+				}}
 				onclick={() => switchServer(server)}
 			>
 				<!-- TODO: is connected indicator -->
@@ -44,10 +47,13 @@
 				<Tooltip.Root>
 					<Tooltip.Trigger
 						class={[
-							buttonVariants({ variant: 'outline', size: 'icon' }),
+							buttonVariants({
+								variant: server === serversManager.selectedServer ? 'outline' : 'ghost',
+								size: 'icon',
+							}),
+							'hover:text-destructive rounded-l-none border-l-0',
 							{
-								'hover:text-destructive rounded-l-none border-l-0': true,
-								'ring-primary/40 ring': server === serversManager.selectedServer,
+								'border border-transparent': server !== serversManager.selectedServer,
 							},
 						]}
 						onclick={() => deleteServer(server)}
@@ -63,7 +69,7 @@
 	{/each}
 	<Tooltip.Provider>
 		<Tooltip.Root>
-			<Tooltip.Trigger class={buttonVariants({ variant: 'outline', size: 'icon' })} onclick={addBlankServer}>
+			<Tooltip.Trigger class={buttonVariants({ variant: 'ghost', size: 'icon' })} onclick={addBlankServer}>
 				<PlusIcon />
 			</Tooltip.Trigger>
 			<Tooltip.Content>
