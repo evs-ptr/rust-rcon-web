@@ -20,7 +20,7 @@
 
 	// TODO: you know what to do
 	function prepareChatText(chatEntry: ChatEntry): string {
-		return `[${ChatChannelEnum[chatEntry.Channel]}] ${chatEntry.Username}: ${chatEntry.Message.trim()}`
+		return `[${ChatChannelEnum[chatEntry.Channel]}] ${chatEntry.Username}(${chatEntry.UserId}): ${chatEntry.Message.trim()}`
 	}
 
 	function getLogTypeClasses(logType: LogType): string[] {
