@@ -8,7 +8,7 @@
 </script>
 
 <header class="sticky top-0 backdrop-blur-md">
-	<div class="flex flex-row justify-between px-8 py-2">
+	<div class="flex flex-row justify-between px-2 py-2 sm:px-4 lg:px-8">
 		<nav class="flex flex-row gap-2">
 			<Button
 				href="/"
