@@ -15,7 +15,7 @@
 		`:${message.timestamp.getSeconds().toString().padStart(2, '0')}`
 
 	function prepareText(text: string): string {
-		return text.trim()
+		return text
 	}
 
 	// TODO: you know what to do
