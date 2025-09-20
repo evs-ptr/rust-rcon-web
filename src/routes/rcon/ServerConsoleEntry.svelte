@@ -5,9 +5,10 @@
 
 	interface Props {
 		message: ServerConsoleMessage
+		showTimestamp?: boolean
 	}
 
-	const { message }: Props = $props()
+	const { message, showTimestamp = true }: Props = $props()
 
 	const formattedDate =
 		`${message.timestamp.getHours().toString().padStart(2, '0')}` +
@@ -64,7 +65,9 @@
 
 <div>
 	<div class="flex gap-2">
-		<span class="text-cyan-500 dark:text-cyan-400">{formattedDate}</span>
+		{#if showTimestamp}
+			<span class="text-cyan-500 dark:text-cyan-400">{formattedDate}</span>
+		{/if}
 		{@render logText(message)}
 	</div>
 	{#if message.responses}

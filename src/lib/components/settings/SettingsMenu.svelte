@@ -88,6 +88,15 @@
 						The number of chat messages to load in the console when you first connect.
 					{/snippet}
 				</SettingsInput>
+				<SettingsSwitchInput
+					bind:value={config.consoleShowTimestamp}
+					id="console-show-timestamp"
+					label="Show Timestamp"
+				>
+					{#snippet description()}
+						Display timestamps alongside console output messages.
+					{/snippet}
+				</SettingsSwitchInput>
 			</div>
 
 			<Separator />

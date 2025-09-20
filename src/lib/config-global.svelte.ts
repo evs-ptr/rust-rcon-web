@@ -11,6 +11,7 @@ type ConfigGlobalJson = {
 	consoleHistoryLimit: number
 	consoleChatInclude: boolean
 	consoleChatHistoryFetch: number
+	consoleShowTimestamp: boolean
 	chatHistoryFetch: number
 	chatHistoryLimitEnable: boolean
 	chatHistoryLimit: number
@@ -26,6 +27,8 @@ export class ConfigGlobal extends StorageSynced {
 
 	consoleChatInclude: boolean = $state(true)
 	consoleChatHistoryFetch: number = $state(90)
+
+	consoleShowTimestamp: boolean = $state(true)
 
 	chatHistoryFetch: number = $state(400)
 	chatHistoryLimitEnable: boolean = $state(true)
@@ -54,6 +57,9 @@ export class ConfigGlobal extends StorageSynced {
 		if ('consoleChatHistoryFetch' in json && typeof json.consoleChatHistoryFetch === 'number') {
 			this.consoleChatHistoryFetch = json.consoleChatHistoryFetch
 		}
+		if ('consoleShowTimestamp' in json && typeof json.consoleShowTimestamp === 'boolean') {
+			this.consoleShowTimestamp = json.consoleShowTimestamp
+		}
 		if ('chatHistoryFetch' in json && typeof json.chatHistoryFetch === 'number') {
 			this.chatHistoryFetch = json.chatHistoryFetch
 		}
@@ -73,6 +79,7 @@ export class ConfigGlobal extends StorageSynced {
 			consoleHistoryLimit: this.consoleHistoryLimit,
 			consoleChatInclude: this.consoleChatInclude,
 			consoleChatHistoryFetch: this.consoleChatHistoryFetch,
+			consoleShowTimestamp: this.consoleShowTimestamp,
 			chatHistoryFetch: this.chatHistoryFetch,
 			chatHistoryLimitEnable: this.chatHistoryLimitEnable,
 			chatHistoryLimit: this.chatHistoryLimit,

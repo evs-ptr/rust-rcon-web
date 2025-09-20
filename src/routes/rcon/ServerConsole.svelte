@@ -172,7 +172,7 @@
 				<div class={[skeletonClass, 'w-2/5']}></div>
 			{:else}
 				{#each store.messages as message (message.id)}
-					<ServerConsoleEntry {message} />
+					<ServerConsoleEntry {message} showTimestamp={config.consoleShowTimestamp} />
 				{/each}
 			{/if}
 		</div>
