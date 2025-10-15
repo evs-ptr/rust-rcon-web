@@ -3,7 +3,6 @@
 	import type { RustServer } from './rust-server.svelte'
 	import ServerChat from './ServerChat.svelte'
 	import ServerInfo from './ServerInfo.svelte'
-	import ServerPluginConfigs from './ServerPluginConfigs.svelte'
 
 	interface Props {
 		server: RustServer
@@ -11,11 +10,7 @@
 
 	let { server }: Props = $props()
 
-	let existingTabs: (typeof server.configServer.selectedTab)[] = ['none', 'info', 'chat', 'pluginConfigs']
-
-	function isTabCarbonOnly(tabName: typeof server.configServer.selectedTab) {
-		return tabName == 'pluginConfigs'
-	}
+	let existingTabs: (typeof server.configServer.selectedTab)[] = ['none', 'info', 'chat']
 </script>
 
 <div class="flex flex-col gap-4">
@@ -27,9 +22,6 @@
 				onclick={() => (server.configServer.selectedTab = tabName)}
 			>
 				{tabName}
-				{#if isTabCarbonOnly(tabName)}
-					<img src="carbon-logo-small.webp" title="Carbon-only feature" alt="Carbon" class="size-4" />
-				{/if}
 			</Button>
 		{/each}
 	</div>
@@ -37,11 +29,5 @@
 		<ServerInfo {server} />
 	{:else if server.configServer.selectedTab == 'chat'}
 		<ServerChat {server} />
-	{:else if server.configServer.selectedTab == 'pluginConfigs'}
-		{#if server.isCarbon}
-			<ServerPluginConfigs {server} />
-		{:else}
-			<div class="text-destructive text-center">Only available with Carbon Framework</div>
-		{/if}
 	{/if}
 </div>
