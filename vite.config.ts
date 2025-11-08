@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { sveltekit } from '@sveltejs/kit/vite'
 import tailwindcss from '@tailwindcss/vite'
+import { playwright } from '@vitest/browser-playwright'
 import { defineConfig as defineViteConfig, mergeConfig } from 'vite'
 import devtoolsJson from 'vite-plugin-devtools-json'
 import { defineConfig as defineVitestConfig } from 'vitest/config'
@@ -15,10 +16,9 @@ const vitestConfig = defineVitestConfig({
 			{
 				test: {
 					name: 'client',
-					environment: 'browser',
 					browser: {
 						enabled: true,
-						provider: 'playwright',
+						provider: playwright(),
 						instances: [{ browser: 'chromium' }],
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
