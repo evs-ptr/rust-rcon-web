@@ -13,7 +13,7 @@
 		"@tailwindcss/vite": "^4.1.17",
 		"@vitest/browser": "^4.0.13",
 		"@vitest/browser-playwright": "^4.0.13",
-		"bits-ui": "2.11.7",
+		"bits-ui": "2.14.4",
 		"clsx": "^2.1.1",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
