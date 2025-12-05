@@ -41,7 +41,7 @@
 
 <section class="flex flex-col items-center gap-6 py-24 text-center">
 	<h1
-		class="from-foreground via-foreground to-muted-foreground max-w-4xl bg-gradient-to-br bg-clip-text py-2 text-5xl font-extrabold tracking-tight text-balance text-transparent sm:text-6xl"
+		class="from-foreground via-foreground to-muted-foreground max-w-4xl bg-linear-to-br bg-clip-text py-2 text-5xl font-extrabold tracking-tight text-balance text-transparent sm:text-6xl"
 	>
 		Remote console done right.
 	</h1>
@@ -109,7 +109,7 @@
 				<CardTitle>Secure by Default</CardTitle>
 			</CardHeader>
 			<CardContent>
-				Supports <code>wss://</code> and never stores credentials.
+				Supports <code>wss://</code> and never stores credentials. (unless checked to)
 			</CardContent>
 		</Card>
 	</div>
