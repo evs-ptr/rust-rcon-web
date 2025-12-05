@@ -10,6 +10,7 @@
 
 	const { message, showTimestamp = true }: Props = $props()
 
+// svelte-ignore state_referenced_locally
 	const formattedDate =
 		`${message.timestamp.getHours().toString().padStart(2, '0')}` +
 		`:${message.timestamp.getMinutes().toString().padStart(2, '0')}` +

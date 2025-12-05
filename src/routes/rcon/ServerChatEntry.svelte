@@ -60,11 +60,15 @@
 		return `https://steamcommunity.com/profiles/${id}`
 	}
 
+  // svelte-ignore state_referenced_locally
 	const userId = stringToSteamId(entry.UserId)
+  // svelte-ignore state_referenced_locally
 	const isPlayer = isSteamId(userId)
-
+  // svelte-ignore state_referenced_locally
 	const formattedDate = formatDate(epochToDate(entry.Time))
+  // svelte-ignore state_referenced_locally
 	const channelName = ChatChannelEnum[entry.Channel]
+  // svelte-ignore state_referenced_locally
 	const channelClasses = getChannelColorClasses(entry.Channel)
 	const userNameClasses = getUserNameColorClasses(userId)
 </script>
