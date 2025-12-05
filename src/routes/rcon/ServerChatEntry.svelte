@@ -62,7 +62,6 @@
 
   // svelte-ignore state_referenced_locally
 	const userId = stringToSteamId(entry.UserId)
-  // svelte-ignore state_referenced_locally
 	const isPlayer = isSteamId(userId)
   // svelte-ignore state_referenced_locally
 	const formattedDate = formatDate(epochToDate(entry.Time))
