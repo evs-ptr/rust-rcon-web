@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-\*\*-\*\* - Unknown
+
+- Apperently, I forgot about that file lol
+
 ## 2025-07-18 - Jul 18
 
 - Implemented Chat tab (inherits Console a lot)
