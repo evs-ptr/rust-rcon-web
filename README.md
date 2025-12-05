@@ -116,14 +116,14 @@ This project uses [Vitest](https://vitest.dev/) for unit testing.
 
 ## Technologies Used
 
-*   **Framework:** [SvelteKit](https://kit.svelte.dev/)
-*   **Language:** [TypeScript](https://www.typescriptlang.org/)
-*   **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-*   **UI Components:** [shadcn-svelte](https://www.shadcn-svelte.com/) (a collection of reusable Svelte components)
-*   **Icons:** [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte)
-*   **Build Tool:** [Vite](https://vitejs.dev/)
-*   **Testing:** [Vitest](https://vitest.dev/) for unit tests.
-*   **Runtime:** [Bun](https://bun.sh/)
+- **Framework:** [SvelteKit](https://kit.svelte.dev/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **UI Components:** [shadcn-svelte](https://www.shadcn-svelte.com/) (a collection of reusable Svelte components)
+- **Icons:** [Lucide Svelte](https://lucide.dev/guide/packages/lucide-svelte)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Testing:** [Vitest](https://vitest.dev/) for unit tests.
+- **Runtime:** [Bun](https://bun.sh/)
 
 ## Contributing
 
