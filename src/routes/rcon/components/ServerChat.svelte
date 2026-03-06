@@ -17,8 +17,10 @@
 
 	let chatContainer: HTMLDivElement | undefined
 	let pendingScrollSync = false
+	let didRestoreScrollPosition = false
+	const SCROLL_THRESHOLD = 16 * 2
 
-	function calculateShouldScroll() {
+	function isNearBottom() {
 		const SCROLL_THRESHOLD = 16 * 2
 		if (!chatContainer) {
 			return false
@@ -41,7 +43,7 @@
 			return
 		}
 		store.lastScrollTop = chatContainer.scrollTop
-		store.lastShouldScroll = calculateShouldScroll()
+		store.lastShouldScroll = isNearBottom()
 	}
 
 	function queueScrollSync() {
@@ -49,7 +51,8 @@
 			return
 		}
 
-		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
+		const shouldScroll = store.lastShouldScroll ?? true
+		const previousScrollTop = chatContainer.scrollTop
 		pendingScrollSync = true
 
 		tick().then(() => {
@@ -61,16 +64,45 @@
 
 			if (shouldScroll) {
 				scrollToBottom()
-			} else if (store.lastScrollTop != null) {
-				chatContainer.scrollTop = store.lastScrollTop
+				store.lastShouldScroll = true
+				store.lastScrollTop = chatContainer.scrollTop
+			} else {
+				chatContainer.scrollTop = previousScrollTop
+				store.lastScrollTop = chatContainer.scrollTop
 			}
 		})
 	}
 
 	$effect(() => {
+		if (!chatContainer) {
+			didRestoreScrollPosition = false
+			return
+		}
+
 		if (chatContainer && store.lastContainerHeight) {
 			chatContainer.style.height = store.lastContainerHeight
 		}
+		if (chatContainer && store.lastShouldScroll == null) {
+			store.lastShouldScroll =
+				chatContainer.scrollHeight - chatContainer.clientHeight - chatContainer.scrollTop < SCROLL_THRESHOLD
+			store.lastScrollTop = chatContainer.scrollTop
+		}
+
+		if (!didRestoreScrollPosition) {
+			didRestoreScrollPosition = true
+			tick().then(() => {
+				if (!chatContainer) {
+					return
+				}
+
+				if (store.lastShouldScroll ?? true) {
+					scrollToBottom()
+				} else if (store.lastScrollTop != null) {
+					chatContainer.scrollTop = store.lastScrollTop
+				}
+			})
+		}
+
 		return () => {
 			if (chatContainer?.style.height) {
 				store.lastContainerHeight = chatContainer.style.height

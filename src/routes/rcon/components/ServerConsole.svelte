@@ -21,8 +21,10 @@
 
 	let consoleContainer: HTMLDivElement | undefined
 	let pendingScrollSync = false
+	let didRestoreScrollPosition = false
+	const SCROLL_THRESHOLD = 16 * 2
 
-	function calculateShouldScroll() {
+	function isNearBottom() {
 		const SCROLL_THRESHOLD = 16 * 2
 		if (!consoleContainer) {
 			return false
@@ -46,7 +48,7 @@
 			return
 		}
 		store.lastScrollTop = consoleContainer.scrollTop
-		store.lastShouldScroll = calculateShouldScroll()
+		store.lastShouldScroll = isNearBottom()
 	}
 
 	function queueScrollSync() {
@@ -54,7 +56,8 @@
 			return
 		}
 
-		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
+		const shouldScroll = store.lastShouldScroll ?? true
+		const previousScrollTop = consoleContainer.scrollTop
 		pendingScrollSync = true
 
 		tick().then(() => {
@@ -66,16 +69,46 @@
 
 			if (shouldScroll) {
 				scrollToBottom()
-			} else if (store.lastScrollTop != null) {
-				consoleContainer.scrollTop = store.lastScrollTop
+				store.lastShouldScroll = true
+				store.lastScrollTop = consoleContainer.scrollTop
+			} else {
+				consoleContainer.scrollTop = previousScrollTop
+				store.lastScrollTop = consoleContainer.scrollTop
 			}
 		})
 	}
 
 	$effect(() => {
+		if (!consoleContainer) {
+			didRestoreScrollPosition = false
+			return
+		}
+
 		if (consoleContainer && store.lastContainerHeight) {
 			consoleContainer.style.height = store.lastContainerHeight
 		}
+		if (consoleContainer && store.lastShouldScroll == null) {
+			store.lastShouldScroll =
+				consoleContainer.scrollHeight - consoleContainer.clientHeight - consoleContainer.scrollTop <
+				SCROLL_THRESHOLD
+			store.lastScrollTop = consoleContainer.scrollTop
+		}
+
+		if (!didRestoreScrollPosition) {
+			didRestoreScrollPosition = true
+			tick().then(() => {
+				if (!consoleContainer) {
+					return
+				}
+
+				if (store.lastShouldScroll ?? true) {
+					scrollToBottom()
+				} else if (store.lastScrollTop != null) {
+					consoleContainer.scrollTop = store.lastScrollTop
+				}
+			})
+		}
+
 		return () => {
 			if (consoleContainer?.style.height) {
 				store.lastContainerHeight = consoleContainer.style.height
