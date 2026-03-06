@@ -75,8 +75,6 @@ export class WebSocketWrapper {
 		this.reconnectAttempts++
 		const delay = Math.min(this.baseReconnectDelay * Math.pow(1.3, this.reconnectAttempts - 1), 15_000)
 
-		console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`)
-
 		if (this.reconnectTimeout) {
 			clearTimeout(this.reconnectTimeout)
 		}
@@ -129,13 +127,11 @@ export class WebSocketWrapper {
 		this.unbindEvents()
 		this.ws.close(1000, 'done')
 		this.resetState()
-		console.log('WebSocket disconnected')
 	}
 
 	onOpen() {
 		this.isConnected = true
 		this.connectResolve?.(undefined)
-		console.log('WebSocket connected successfully')
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -151,7 +147,6 @@ export class WebSocketWrapper {
 	}
 
 	onClose(event: CloseEvent) {
-		console.log(`WebSocket closed (${this.url}): ${event.code} - ${event.reason}`)
 		this.resetState()
 
 		// Don't reconnect if it was a normal closure
