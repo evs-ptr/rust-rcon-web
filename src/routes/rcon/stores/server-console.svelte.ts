@@ -68,6 +68,8 @@ export class ServerConsoleStore {
 	public lastScrollTop: number | null = null
 	public lastShouldScroll: boolean | null = null
 	public lastContainerHeight: string | null = null
+	public lastLifecycleNoticeAt: number | null = null
+	public shouldAnnounceCommandReadiness: boolean = $state(false)
 
 	public isPopulatedConsole: boolean = $state(false)
 	public isPopulatingConsole: boolean = $state(false)
@@ -381,6 +383,8 @@ export class ServerConsoleStore {
 		this.didPopulateInitialConsole = false
 		this.isPopulatingConsole = false
 		this.populateConsoleError = null
+		this.lastLifecycleNoticeAt = null
+		this.shouldAnnounceCommandReadiness = false
 	}
 }
 

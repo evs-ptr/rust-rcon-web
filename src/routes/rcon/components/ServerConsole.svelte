@@ -24,8 +24,6 @@
 	let pendingScrollSync = false
 	let didRestoreScrollPosition = false
 	let isManualReconnectPending = $state(false)
-	let lastLifecycleNoticeAt: number | null = null
-	let shouldAnnounceCommandReadiness = false
 	const SCROLL_THRESHOLD = 16 * 2
 
 	function formatDelay(delayMs: number | null) {
@@ -93,6 +91,10 @@
 
 		const shouldScroll = store.lastShouldScroll ?? true
 		const previousScrollTop = consoleContainer.scrollTop
+		const targetScrollTop =
+			!shouldScroll && !didRestoreScrollPosition && store.lastScrollTop != null
+				? store.lastScrollTop
+				: previousScrollTop
 		pendingScrollSync = true
 
 		tick().then(() => {
@@ -107,7 +109,7 @@
 				store.lastShouldScroll = true
 				store.lastScrollTop = consoleContainer.scrollTop
 			} else {
-				consoleContainer.scrollTop = previousScrollTop
+				consoleContainer.scrollTop = targetScrollTop
 				store.lastScrollTop = consoleContainer.scrollTop
 			}
 		})
@@ -176,18 +178,18 @@
 		}
 
 		const eventTimestamp = event.at.getTime()
-		if (lastLifecycleNoticeAt === eventTimestamp) {
+		if (store.lastLifecycleNoticeAt === eventTimestamp) {
 			return
 		}
-		lastLifecycleNoticeAt = eventTimestamp
+		store.lastLifecycleNoticeAt = eventTimestamp
 
 		switch (event.status) {
 			case WebSocketConnectionStatus.Connected:
-				shouldAnnounceCommandReadiness = !server.isCommandReady && !server.hasEverBeenCommandReady
+				store.shouldAnnounceCommandReadiness = !server.isCommandReady && !server.hasEverBeenCommandReady
 				store.addMessageRaw(
 					event.wasReconnect
 						? 'Reconnected to RCon.'
-						: shouldAnnounceCommandReadiness
+						: store.shouldAnnounceCommandReadiness
 							? 'Connected to RCon. Server is still starting, waiting for command responses...'
 							: 'Connected to RCon.',
 					ServerConsoleMessageType.System
@@ -216,11 +218,11 @@
 	})
 
 	$effect(() => {
-		if (!shouldAnnounceCommandReadiness || !server.isCommandReady) {
+		if (!store.shouldAnnounceCommandReadiness || !server.isCommandReady) {
 			return
 		}
 
-		shouldAnnounceCommandReadiness = false
+		store.shouldAnnounceCommandReadiness = false
 		store.addMessageRaw('Server is ready for RCon commands.', ServerConsoleMessageType.System)
 	})
 

@@ -54,6 +54,10 @@
 
 		const shouldScroll = store.lastShouldScroll ?? true
 		const previousScrollTop = chatContainer.scrollTop
+		const targetScrollTop =
+			!shouldScroll && !didRestoreScrollPosition && store.lastScrollTop != null
+				? store.lastScrollTop
+				: previousScrollTop
 		pendingScrollSync = true
 
 		tick().then(() => {
@@ -68,7 +72,7 @@
 				store.lastShouldScroll = true
 				store.lastScrollTop = chatContainer.scrollTop
 			} else {
-				chatContainer.scrollTop = previousScrollTop
+				chatContainer.scrollTop = targetScrollTop
 				store.lastScrollTop = chatContainer.scrollTop
 			}
 		})
