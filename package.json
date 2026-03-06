@@ -17,9 +17,11 @@
 		"clsx": "^2.1.1",
 		"eslint": "^10.0.2",
 		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-oxlint": "^1.51.0",
 		"eslint-plugin-svelte": "^3.15.0",
 		"globals": "^17.4.0",
 		"mode-watcher": "^1.1.0",
+		"oxlint": "^1.51.0",
 		"playwright": "^1.58.2",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.5.1",
@@ -46,9 +48,11 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "eslint .",
+		"lint:oxlint": "oxlint . --fix -D correctness -c .oxlintrc.json",
+		"lint:eslint": "eslint . --fix --cache",
+		"lint": "bun run lint:oxlint && bun run lint:eslint",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "bun run test:unit -- --run"
 	},
 	"type": "module"
 }
