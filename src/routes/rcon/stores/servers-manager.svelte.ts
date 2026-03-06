@@ -1,7 +1,7 @@
 import { ConfigServer, getAllSavedIdentifiers } from '$lib/config-server.svelte'
 import type { ConfigState } from '$lib/config-state.svelte'
 import { getContext, setContext } from 'svelte'
-import { RustServer } from './rust-server.svelte'
+import { RustServer } from '../core/rust-server.svelte'
 
 export class ServersManager {
 	readonly configState: ConfigState

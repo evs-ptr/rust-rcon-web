@@ -11,8 +11,8 @@
 	import PowerIcon from '@lucide/svelte/icons/power'
 	import ServerIcon from '@lucide/svelte/icons/server'
 	import UsersIcon from '@lucide/svelte/icons/users'
-	import type { ServerInfo } from './rust-rcon.types'
-	import type { RustServer } from './rust-server.svelte'
+	import type { ServerInfo } from '../core/rust-rcon.types'
+	import type { RustServer } from '../core/rust-server.svelte'
 
 	type CardItemData = {
 		icon: typeof ServerIcon

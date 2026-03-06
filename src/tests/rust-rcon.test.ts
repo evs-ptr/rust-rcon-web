@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { RustRconConnection } from '../routes/rcon/rust-rcon'
-import { LogType, type CommandResponse } from '../routes/rcon/rust-rcon.types'
+import { RustRconConnection } from '../routes/rcon/core/rust-rcon'
+import { LogType, type CommandResponse } from '../routes/rcon/core/rust-rcon.types'
 import { FakeWebSocket } from './lib/fake-websocket'
 
 let realWebSocket: typeof WebSocket | undefined

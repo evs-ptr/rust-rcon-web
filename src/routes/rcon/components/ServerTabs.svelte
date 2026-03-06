@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js'
-	import type { RustServer } from './rust-server.svelte'
+	import type { RustServer } from '../core/rust-server.svelte'
 	import ServerChat from './ServerChat.svelte'
 	import ServerInfo from './ServerInfo.svelte'
 

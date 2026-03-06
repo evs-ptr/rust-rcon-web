@@ -6,7 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index.js'
 	import { getConfigStateContext } from '$lib/config-state.svelte'
 	import Loader2Icon from '@lucide/svelte/icons/loader-2'
-	import type { RustServer } from './rust-server.svelte.ts'
+	import type { RustServer } from '../core/rust-server.svelte.ts'
 
 	interface Props {
 		server: RustServer

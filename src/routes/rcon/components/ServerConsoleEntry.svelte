@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { ChatChannelEnum, type ChatEntry } from './rust-rcon-chat'
-	import { LogType } from './rust-rcon.types'
-	import { ServerConsoleMessageType, type ServerConsoleMessage } from './server-console.svelte'
+	import { ChatChannelEnum, type ChatEntry } from '../core/rust-rcon-chat'
+	import { LogType } from '../core/rust-rcon.types'
+	import { ServerConsoleMessageType, type ServerConsoleMessage } from '../stores/server-console.svelte'
 
 	interface Props {
 		message: ServerConsoleMessage

@@ -7,7 +7,7 @@
 	import { onDestroy } from 'svelte'
 	import Footer from './Footer.svelte'
 	import Header from './Header.svelte'
-	import { setServersManagerContext } from './rcon/servers-manager.svelte'
+	import { setServersManagerContext } from './rcon/stores/servers-manager.svelte'
 
 	let { children } = $props()
 

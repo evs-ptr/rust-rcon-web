@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { WebSocketWrapper } from '../routes/rcon/websocket-wrapper'
+import { WebSocketWrapper } from '../routes/rcon/core/websocket-wrapper'
 import { FakeWebSocket } from './lib/fake-websocket'
 
 let realWebSocket: typeof WebSocket | undefined

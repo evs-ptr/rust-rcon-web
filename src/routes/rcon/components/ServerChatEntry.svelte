@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChatChannelEnum, type ChatEntry } from './rust-rcon-chat'
+	import { ChatChannelEnum, type ChatEntry } from '../core/rust-rcon-chat'
 
 	interface Props {
 		entry: ChatEntry

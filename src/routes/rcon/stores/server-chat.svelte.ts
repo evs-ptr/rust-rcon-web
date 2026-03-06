@@ -1,8 +1,8 @@
 import type { ConfigGlobal } from '$lib/config-global.svelte'
 import { CommandHistory } from './command-history.svelte'
-import { parseChatEntries, parseChatEntry, type ChatEntry } from './rust-rcon-chat'
-import { LogType, type CommandResponse } from './rust-rcon.types'
-import type { RustServer } from './rust-server.svelte'
+import { parseChatEntries, parseChatEntry, type ChatEntry } from '../core/rust-rcon-chat'
+import { LogType, type CommandResponse } from '../core/rust-rcon.types'
+import type { RustServer } from '../core/rust-server.svelte'
 
 export class ServerChatMessage {
 	private static idCounter = 0

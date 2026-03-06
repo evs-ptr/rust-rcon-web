@@ -3,8 +3,8 @@
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js'
 	import PlusIcon from '@lucide/svelte/icons/plus'
 	import XIcon from '@lucide/svelte/icons/x'
-	import type { RustServer } from './rust-server.svelte'
-	import { ServersManager } from './servers-manager.svelte'
+	import type { RustServer } from '../core/rust-server.svelte'
+	import { ServersManager } from '../stores/servers-manager.svelte'
 
 	interface Props {
 		serversManager: ServersManager

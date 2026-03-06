@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RustServer } from './rust-server.svelte'
+	import type { RustServer } from '../core/rust-server.svelte'
 	import ServerConnect from './ServerConnect.svelte'
 	import ServerConsole from './ServerConsole.svelte'
 	import ServerTabs from './ServerTabs.svelte'

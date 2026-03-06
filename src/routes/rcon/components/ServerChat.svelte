@@ -3,8 +3,8 @@
 	import { Input } from '$lib/components/ui/input/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import { tick } from 'svelte'
-	import type { RustServer } from './rust-server.svelte'
-	import { getServerChatStore, type ServerChatStore } from './server-chat.svelte'
+	import type { RustServer } from '../core/rust-server.svelte'
+	import { getServerChatStore, type ServerChatStore } from '../stores/server-chat.svelte'
 	import ServerChatEntry from './ServerChatEntry.svelte'
 
 	interface Props {

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ServerMain from './ServerMain.svelte'
-	import { getServersManagerContext } from './servers-manager.svelte'
-	import ServersChooser from './ServersChooser.svelte'
+	import ServerMain from './components/ServerMain.svelte'
+	import ServersChooser from './components/ServersChooser.svelte'
+	import { getServersManagerContext } from './stores/servers-manager.svelte'
 
 	const serversManager = getServersManagerContext()
 </script>

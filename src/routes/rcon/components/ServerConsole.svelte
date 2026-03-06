@@ -3,12 +3,12 @@
 	import { Input } from '$lib/components/ui/input/index.js'
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import { tick } from 'svelte'
-	import type { RustServer } from './rust-server.svelte'
+	import type { RustServer } from '../core/rust-server.svelte'
 	import {
 		getServerConsoleStore,
 		ServerConsoleMessageType,
 		type ServerConsoleStore,
-	} from './server-console.svelte'
+	} from '../stores/server-console.svelte'
 	import ServerConsoleEntry from './ServerConsoleEntry.svelte'
 
 	interface Props {
