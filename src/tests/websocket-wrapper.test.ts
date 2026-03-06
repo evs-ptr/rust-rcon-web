@@ -142,6 +142,25 @@ describe('WebSocketWrapper', function (): void {
 		vi.useRealTimers()
 	})
 
+	it('disconnect() cancels a pending reconnect when the socket is already closed', async function (): Promise<void> {
+		vi.useFakeTimers()
+
+		const wrapper = new WebSocketWrapper('ws://example')
+		await wrapper.connect()
+
+		const firstSocket = FakeWebSocket.instances[0]
+		firstSocket.close(1011, 'server crash')
+
+		wrapper.disconnect()
+
+		await vi.advanceTimersByTimeAsync(2_000)
+
+		expect(wrapper.isConnected).toBe(false)
+		expect(FakeWebSocket.instances.length).toBe(1)
+
+		vi.useRealTimers()
+	})
+
 	it('reconnects automatically after an abnormal close', async function (): Promise<void> {
 		vi.useFakeTimers()
 

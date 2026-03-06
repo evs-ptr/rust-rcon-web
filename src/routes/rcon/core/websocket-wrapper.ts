@@ -193,15 +193,19 @@ export class WebSocketWrapper {
 	}
 
 	disconnect(): void {
-		if (!this.ws) {
-			return
-		}
-
 		this.shouldReconnect = false // Prevent reconnection on manual disconnect
 
 		if (this.reconnectTimeout) {
 			clearTimeout(this.reconnectTimeout)
 			this.reconnectTimeout = null
+		}
+
+		if (!this.ws) {
+			this.lastCloseCode = 1000
+			this.lastCloseReason = 'Disconnected manually'
+			this.resetState()
+			this.emitLifecycle(WebSocketConnectionStatus.Disconnected, { wasReconnect: false })
+			return
 		}
 
 		this.unbindEvents()
