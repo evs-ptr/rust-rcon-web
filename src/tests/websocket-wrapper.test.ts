@@ -233,7 +233,7 @@ describe('WebSocketWrapper', function (): void {
 		firstSocket.close(1011, 'server crash')
 
 		await vi.advanceTimersByTimeAsync(1_000) // 1st reconnect attempt
-		await vi.advanceTimersByTimeAsync(1_300) // 2nd reconnect attempt
+		await vi.advanceTimersByTimeAsync(1_250) // 2nd reconnect attempt
 
 		expect(errorSpy).toHaveBeenCalledWith('Reconnection failed:', expect.any(Error))
 		expect(errorSpy).toHaveBeenCalledWith('Max reconnection attempts reached or reconnection disabled')
@@ -244,6 +244,33 @@ describe('WebSocketWrapper', function (): void {
 		expect(FakeWebSocket.instances.length).toBe(3) // Initial + 2 attempts
 
 		errorSpy.mockRestore()
+		vi.useRealTimers()
+	})
+
+	it('uses a gentler reconnect backoff curve', async function (): Promise<void> {
+		vi.useFakeTimers()
+
+		const wrapper = new WebSocketWrapper('ws://example')
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		;(wrapper as any).maxReconnectAttempts = 3
+		const events: WebSocketLifecycleEvent[] = []
+		wrapper.subscribeOnLifecycle('test', (event) => {
+			events.push(event)
+		})
+
+		await wrapper.connect()
+		FakeWebSocket.shouldFailOnConnect = true
+
+		const firstSocket = FakeWebSocket.instances[0]
+		firstSocket.close(1011, 'server crash')
+
+		await vi.advanceTimersByTimeAsync(1_000)
+		await vi.advanceTimersByTimeAsync(1_250)
+		await vi.advanceTimersByTimeAsync(1_563)
+
+		const reconnectEvents = events.filter((event) => event.status === WebSocketConnectionStatus.Reconnecting)
+		expect(reconnectEvents.map((event) => event.delayMs)).toEqual([1_000, 1_250, 1_563])
+
 		vi.useRealTimers()
 	})
 

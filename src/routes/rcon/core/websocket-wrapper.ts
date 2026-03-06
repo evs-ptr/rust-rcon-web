@@ -30,6 +30,7 @@ export class WebSocketWrapper {
 	private maxReconnectAttempts = 50
 	private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
 	private baseReconnectDelay = 1000
+	private reconnectDelayMultiplier = 1.25
 
 	private connectTimeout = 5000
 	private connectPromise: Promise<unknown> | null = null
@@ -140,7 +141,7 @@ export class WebSocketWrapper {
 		}
 
 		this.reconnectAttempts++
-		const delay = Math.min(this.baseReconnectDelay * Math.pow(1.3, this.reconnectAttempts - 1), 15_000)
+		const delay = this.getReconnectDelay(this.reconnectAttempts)
 
 		if (this.reconnectTimeout) {
 			clearTimeout(this.reconnectTimeout)
@@ -160,6 +161,13 @@ export class WebSocketWrapper {
 				this.handleReconnect()
 			}
 		}, delay)
+	}
+
+	private getReconnectDelay(attempt: number) {
+		return Math.min(
+			Math.round(this.baseReconnectDelay * Math.pow(this.reconnectDelayMultiplier, attempt - 1)),
+			10_000
+		)
 	}
 
 	private bindEvents() {
