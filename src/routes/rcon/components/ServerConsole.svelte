@@ -84,9 +84,9 @@
 	})
 
 	$effect.pre(() => {
-		// This is needed to make sure that the effect is triggered on messages change
+		// This is needed to make sure that the effect is triggered on any rendered console change
 		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		store.messages.length
+		store.renderVersion
 
 		if (!consoleContainer) {
 			return
@@ -116,7 +116,6 @@
 		store.history.add(command)
 
 		server.sendCommandGetResponsesMany(command, (response) => {
-			queueScrollSync()
 			store.addCommandResponse(userCommand, response)
 		})
 

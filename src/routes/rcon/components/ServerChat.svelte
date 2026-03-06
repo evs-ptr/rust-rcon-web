@@ -79,9 +79,9 @@
 	})
 
 	$effect.pre(() => {
-		// This is needed to make sure that the effect is triggered on messages change
+		// This is needed to make sure that the effect is triggered on any rendered chat change
 		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		store.chatMessages.length
+		store.renderVersion
 
 		if (!chatContainer) {
 			return

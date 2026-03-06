@@ -59,6 +59,7 @@ export class ServerConsoleStore {
 	// TODO: make it NOT deep
 	public readonly messages: ServerConsoleMessage[] = $state([])
 	public commandInput: string = $state('')
+	public renderVersion: number = $state(0)
 
 	public readonly history: CommandHistory = new CommandHistory()
 
@@ -98,11 +99,15 @@ export class ServerConsoleStore {
 	private pushMessage(msg: ServerConsoleMessage) {
 		this.clampMessagesIfNeeded(1)
 		this.messages.push(msg)
+		this.renderVersion += 1
 	}
 
 	private pushMessages(msgs: ServerConsoleMessage[]) {
 		this.clampMessagesIfNeeded(msgs.length)
 		this.messages.push(...msgs)
+		if (msgs.length > 0) {
+			this.renderVersion += 1
+		}
 	}
 
 	private schedulePendingFlush() {
@@ -122,18 +127,17 @@ export class ServerConsoleStore {
 			this.pendingMessages = []
 		}
 
-		if (this.pendingCommandResponses.size === 0) {
-			return
-		}
-
-		for (const [commandMessage, responses] of this.pendingCommandResponses) {
-			if (commandMessage.responses == null) {
-				commandMessage.responses = []
+		if (this.pendingCommandResponses.size > 0) {
+			for (const [commandMessage, responses] of this.pendingCommandResponses) {
+				if (commandMessage.responses == null) {
+					commandMessage.responses = []
+				}
+				commandMessage.responses.push(...responses)
 			}
-			commandMessage.responses.push(...responses)
-		}
 
-		this.pendingCommandResponses.clear()
+			this.pendingCommandResponses.clear()
+			this.renderVersion += 1
+		}
 	}
 
 	private enqueueMessage(msg: ServerConsoleMessage) {

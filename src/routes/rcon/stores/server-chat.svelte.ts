@@ -35,6 +35,7 @@ export class ServerChatStore {
 	public readonly config: ConfigGlobal
 
 	readonly chatMessages: ServerChatMessage[] = $state([])
+	public renderVersion: number = $state(0)
 
 	chatCommandInput: string = $state('')
 	public readonly history: CommandHistory = new CommandHistory()
@@ -74,11 +75,15 @@ export class ServerChatStore {
 	private pushMessage(msg: ServerChatMessage) {
 		this.clampMessagesIfNeeded(1)
 		this.chatMessages.push(msg)
+		this.renderVersion += 1
 	}
 
 	private pushMessages(msgs: ServerChatMessage[]) {
 		this.clampMessagesIfNeeded(msgs.length)
 		this.chatMessages.push(...msgs)
+		if (msgs.length > 0) {
+			this.renderVersion += 1
+		}
 	}
 
 	private schedulePendingFlush() {
