@@ -1,5 +1,5 @@
 import type { ConfigServer } from '$lib/config-server.svelte'
-import { RustRconConnection } from './rust-rcon'
+import { RustRconConnection, type SendCommandGetResponseOptions } from './rust-rcon'
 import type { CommandResponse } from './rust-rcon.types'
 import { WebSocketConnectionStatus, type WebSocketLifecycleEvent } from './websocket-wrapper'
 
@@ -153,10 +153,32 @@ export class RustServer {
 		void this.probeFrameworkFlags(generation)
 	}
 
+	private markCommandReady() {
+		this.isCommandReady = true
+		this.hasEverBeenCommandReady = true
+	}
+
+	private applyFrameworkProbeResult(command: string, isDetected: boolean, generation: number) {
+		if (generation !== this.frameworkProbeGeneration || !isDetected) {
+			return
+		}
+
+		switch (command) {
+			case 'o.version':
+				this.isOxide = true
+				break
+			case 'c.version':
+				this.isCarbon = true
+				break
+			default:
+				break
+		}
+	}
+
 	private async probeFrameworkFlags(generation: number) {
 		const [oxide, carbon] = await Promise.all([
-			this.probeFrameworkCommand('o.version'),
-			this.probeFrameworkCommand('c.version'),
+			this.probeFrameworkCommand('o.version', generation),
+			this.probeFrameworkCommand('c.version', generation),
 		])
 
 		if (generation !== this.frameworkProbeGeneration) {
@@ -173,13 +195,20 @@ export class RustServer {
 			return
 		}
 
-		this.isOxide = oxide
-		this.isCarbon = carbon
+		this.isOxide = this.isOxide || oxide
+		this.isCarbon = this.isCarbon || carbon
 	}
 
-	private async probeFrameworkCommand(command: string): Promise<boolean | null> {
+	private async probeFrameworkCommand(command: string, generation: number): Promise<boolean | null> {
 		try {
-			const response = await this.sendCommandGetResponse(command, 8_000)
+			const response = await this.sendCommandGetResponse(command, {
+				timeout: 8_000,
+				onLateResponse: () => {
+					this.markCommandReady()
+					this.applyFrameworkProbeResult(command, true, generation)
+				},
+			})
+			this.applyFrameworkProbeResult(command, Boolean(response), generation)
 			return Boolean(response)
 		} catch (error) {
 			if (
@@ -208,13 +237,12 @@ export class RustServer {
 		return this.rcon.subscribeOnMessagePlayerRelated(subscribeId, onMessage)
 	}
 
-	async sendCommandGetResponse(command: string, timeout?: number) {
+	async sendCommandGetResponse(command: string, timeoutOrOptions?: number | SendCommandGetResponseOptions) {
 		if (!this.rcon || !this.connectionWasEstablished) {
 			return
 		}
-		const response = await this.rcon.sendCommandGetResponse(command, timeout)
-		this.isCommandReady = true
-		this.hasEverBeenCommandReady = true
+		const response = await this.rcon.sendCommandGetResponse(command, timeoutOrOptions)
+		this.markCommandReady()
 		return response
 	}
 
@@ -223,8 +251,7 @@ export class RustServer {
 			return
 		}
 		return this.rcon.sendCommandGetResponsesMany(command, (msg) => {
-			this.isCommandReady = true
-			this.hasEverBeenCommandReady = true
+			this.markCommandReady()
 			callback(msg)
 		})
 	}

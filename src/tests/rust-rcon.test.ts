@@ -237,6 +237,45 @@ describe('RustRconConnection', function (): void {
 		vi.useRealTimers()
 	})
 
+	it('sendCommandGetResponse() can handle a late response after timeout', async function (): Promise<void> {
+		vi.useFakeTimers()
+		const conn = new RustRconConnection('ws://example')
+		await conn.connect()
+
+		const socket = FakeWebSocket.instances[0]
+		const lateResponse = vi.fn()
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {
+			/* silence log */
+		})
+
+		const promise = conn.sendCommandGetResponse('c.version', {
+			timeout: 6_000,
+			onLateResponse: lateResponse,
+		})
+
+		const sentRaw = socket.sent[0] as string
+		const sent = JSON.parse(sentRaw) as { Identifier: number }
+		const handled = expect(promise).rejects.toThrow('Timed out waiting for response')
+
+		await vi.advanceTimersByTimeAsync(6_000)
+		await handled
+
+		const response: CommandResponse = {
+			Message: 'Carbon Minimal 2.0',
+			Identifier: sent.Identifier,
+			Type: LogType.Generic,
+			Stacktrace: '',
+		}
+		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response) }))
+		await vi.advanceTimersByTimeAsync(16)
+
+		expect(lateResponse).toHaveBeenCalledWith(response)
+		expect(logSpy).not.toHaveBeenCalledWith('unknown message', response)
+
+		logSpy.mockRestore()
+		vi.useRealTimers()
+	})
+
 	it('sendCommandGetResponse() rejects when send fails', async function (): Promise<void> {
 		const conn = new RustRconConnection('ws://example')
 		// Stub send to simulate failure
@@ -306,6 +345,9 @@ describe('RustRconConnection', function (): void {
 		const conn = new RustRconConnection('ws://example')
 		await conn.connect()
 		const socket = FakeWebSocket.instances[0]
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {
+			/* silence log */
+		})
 
 		const callback = vi.fn()
 		conn.sendCommandGetResponsesMany('list', callback)
@@ -355,6 +397,9 @@ describe('RustRconConnection', function (): void {
 		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response3) }))
 		await vi.advanceTimersByTimeAsync(16)
 		expect(callback).toHaveBeenCalledTimes(2) // still 2
+
+		expect(logSpy).not.toHaveBeenCalledWith('unknown message', response3)
+		logSpy.mockRestore()
 	})
 
 	it('sendCommandGetResponsesMany() respects custom timeout', async function (): Promise<void> {

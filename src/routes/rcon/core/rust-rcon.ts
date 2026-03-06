@@ -6,6 +6,24 @@ const MIN_INT_32 = -2_147_483_648
 
 const MSG_ID_SAFE_START = 1699
 const MSG_ID_REG_COMMAND = -698
+const LATE_RESPONSE_GRACE_TIMEOUT = 30_000
+
+export interface SendCommandGetResponseOptions {
+	timeout?: number
+	onLateResponse?: (msg: CommandResponse) => void
+	lateResponseTimeout?: number
+}
+
+interface ResolvedSendCommandGetResponseOptions {
+	timeout: number
+	onLateResponse: ((msg: CommandResponse) => void) | null
+	lateResponseTimeout: number
+}
+
+interface LateResponseHandler {
+	callback: ((msg: CommandResponse) => void) | null
+	cleanupHandle: ReturnType<typeof setTimeout>
+}
 
 function scheduleNextFrame(callback: () => void): number {
 	if (typeof requestAnimationFrame === 'function') {
@@ -30,8 +48,8 @@ export class RustRconConnection extends WebSocketWrapper {
 		(value: CommandResponse | PromiseLike<CommandResponse>) => void
 	>()
 	private readonly messageTimeOut = 6_000
-
 	private readonly messagesMapMany = new Map<number, (msg: CommandResponse) => void>()
+	private readonly lateResponseHandlers = new Map<number, LateResponseHandler>()
 
 	private readonly subscriptionsOnMessageGeneral: Map<string, (msg: CommandResponse) => void> = new Map()
 	private readonly subscriptionsOnMessagePlayerRelated: Map<string, (msg: CommandResponse) => void> =
@@ -79,6 +97,14 @@ export class RustRconConnection extends WebSocketWrapper {
 				continue
 			}
 
+			const lateResponseHandler = this.lateResponseHandlers.get(msg.Identifier)
+			if (lateResponseHandler) {
+				clearTimeout(lateResponseHandler.cleanupHandle)
+				this.lateResponseHandlers.delete(msg.Identifier)
+				lateResponseHandler.callback?.(msg)
+				continue
+			}
+
 			if (msg.Identifier === 0) {
 				this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
 			} else if (msg.Identifier === -1) {
@@ -100,6 +126,10 @@ export class RustRconConnection extends WebSocketWrapper {
 		this.pendingMessages = []
 		this.messagesMap.clear()
 		this.messagesMapMany.clear()
+		for (const lateResponseHandler of this.lateResponseHandlers.values()) {
+			clearTimeout(lateResponseHandler.cleanupHandle)
+		}
+		this.lateResponseHandlers.clear()
 		this.subscriptionsOnMessageGeneral.clear()
 		this.subscriptionsOnMessagePlayerRelated.clear()
 		this.subscriptionsOnMessageCommand.clear()
@@ -169,7 +199,44 @@ export class RustRconConnection extends WebSocketWrapper {
 		} satisfies CommandSend
 	}
 
-	sendCommandGetResponse(command: string, timeout: number = this.messageTimeOut): Promise<CommandResponse> {
+	private registerLateResponseHandler(
+		msgId: number,
+		callback: ((msg: CommandResponse) => void) | null,
+		timeout: number = LATE_RESPONSE_GRACE_TIMEOUT
+	) {
+		const cleanupHandle = setTimeout(() => {
+			this.lateResponseHandlers.delete(msgId)
+		}, timeout)
+
+		this.lateResponseHandlers.set(msgId, {
+			callback,
+			cleanupHandle,
+		})
+	}
+
+	private resolveSendCommandGetResponseOptions(
+		timeoutOrOptions: number | SendCommandGetResponseOptions | undefined
+	): ResolvedSendCommandGetResponseOptions {
+		if (typeof timeoutOrOptions === 'number' || timeoutOrOptions == null) {
+			return {
+				timeout: timeoutOrOptions ?? this.messageTimeOut,
+				onLateResponse: null,
+				lateResponseTimeout: LATE_RESPONSE_GRACE_TIMEOUT,
+			}
+		}
+
+		return {
+			timeout: timeoutOrOptions.timeout ?? this.messageTimeOut,
+			onLateResponse: timeoutOrOptions.onLateResponse ?? null,
+			lateResponseTimeout: timeoutOrOptions.lateResponseTimeout ?? LATE_RESPONSE_GRACE_TIMEOUT,
+		}
+	}
+
+	sendCommandGetResponse(
+		command: string,
+		timeoutOrOptions?: number | SendCommandGetResponseOptions
+	): Promise<CommandResponse> {
+		const options = this.resolveSendCommandGetResponseOptions(timeoutOrOptions)
 		const msgId = this.takeNextMsgId()
 
 		const promise1 = new Promise((resolve, reject) => {
@@ -188,9 +255,10 @@ export class RustRconConnection extends WebSocketWrapper {
 		const promise2 = new Promise((_, reject) => {
 			setTimeout(() => {
 				if (this.messagesMap.delete(msgId)) {
+					this.registerLateResponseHandler(msgId, options.onLateResponse, options.lateResponseTimeout)
 					reject(new Error('Timed out waiting for response'))
 				}
-			}, timeout)
+			}, options.timeout)
 		})
 
 		return Promise.race([promise1, promise2]) as Promise<CommandResponse>
@@ -208,7 +276,9 @@ export class RustRconConnection extends WebSocketWrapper {
 		this.messagesMapMany.set(msgId, callback)
 
 		setTimeout(() => {
-			this?.messagesMapMany?.delete(msgId)
+			if (this.messagesMapMany.delete(msgId)) {
+				this.registerLateResponseHandler(msgId, null)
+			}
 		}, timeout)
 
 		this.send(serialized)
