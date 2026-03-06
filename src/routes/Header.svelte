@@ -7,7 +7,7 @@
 	import { toggleMode } from 'mode-watcher'
 </script>
 
-<header class="sticky top-0 backdrop-blur-md">
+<header class="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
 	<div class="flex flex-row justify-between px-2 py-2 sm:px-4 lg:px-8">
 		<nav class="flex flex-row gap-2">
 			<Button
