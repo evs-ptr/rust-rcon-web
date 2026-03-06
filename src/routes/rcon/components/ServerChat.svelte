@@ -176,7 +176,7 @@
 	<div
 		bind:this={chatContainer}
 		onscroll={handleScroll}
-		class="bg-card flex h-[380px] resize-y flex-col overflow-x-scroll overflow-y-scroll overscroll-contain rounded-md border"
+		class="bg-card flex h-95 resize-y flex-col overflow-x-scroll overflow-y-scroll overscroll-contain rounded-md border"
 	>
 		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
 			{#each store.chatMessages as entry (entry.id)}
