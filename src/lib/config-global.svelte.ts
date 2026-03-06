@@ -20,10 +20,10 @@ type ConfigGlobalJson = {
 export class ConfigGlobal extends StorageSynced {
 	version: number = 1
 
-	consoleHistoryFetch: number = $state(400)
+	consoleHistoryFetch: number = $state(800)
 
 	consoleHistoryLimitEnable: boolean = $state(true)
-	consoleHistoryLimit: number = $state(10_000)
+	consoleHistoryLimit: number = $state(4_000)
 
 	consoleChatInclude: boolean = $state(true)
 	consoleChatHistoryFetch: number = $state(90)
