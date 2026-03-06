@@ -36,7 +36,7 @@
 			case ChatChannelEnum.Global:
 				return 'text-slate-800 dark:text-slate-300'
 			case ChatChannelEnum.Server:
-				return 'text-orange-600 dark:text-orange-400'
+				return 'text-orange-600 dark:text-orange-300'
 			case ChatChannelEnum.Local:
 				return 'text-gray-600 dark:text-gray-400'
 			case ChatChannelEnum.Clan:

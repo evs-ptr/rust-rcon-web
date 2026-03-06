@@ -42,9 +42,9 @@
 				return [
 					'pl-2',
 					'border-l-2',
-					'border-destructive',
-					'text-destructive',
-					'bg-destructive/10',
+					'border-red-600 dark:border-red-400',
+					'text-red-600 dark:text-red-400',
+					'bg-red-600/10 dark:bg-red-400/10',
 					'rounded-r',
 					'font-medium',
 				]
