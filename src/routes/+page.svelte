@@ -155,7 +155,9 @@
 	</p>
 </section>
 
-<section class="bg-surface-1/90 ring-border/60 flex flex-col items-center gap-4 rounded-3xl py-16 text-center ring-1">
+<section
+	class="bg-surface-1/90 ring-border/60 flex flex-col items-center gap-4 rounded-3xl py-16 text-center ring-1"
+>
 	<h2 class="text-3xl font-bold tracking-tight">Ready to take control?</h2>
 	<p class="text-muted-foreground max-w-xl">Spin up Rust RCon Web locally or deploy it anywhere Bun runs.</p>
 	<Button href="/rcon" size="lg" class="px-10 py-6 text-lg font-semibold">Open Console Now</Button>

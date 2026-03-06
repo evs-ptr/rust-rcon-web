@@ -7,7 +7,7 @@
 </script>
 
 <footer
-	class="text-muted-foreground mt-12 flex flex-col items-center justify-center gap-3 border-t border-border/70 bg-background/70 py-8 text-center text-sm backdrop-blur-sm"
+	class="text-muted-foreground border-border/70 bg-background/70 mt-12 flex flex-col items-center justify-center gap-3 border-t py-8 text-center text-sm backdrop-blur-sm"
 >
 	<div class="flex flex-row flex-wrap items-center justify-center gap-4">
 		<Button href="https://github.com/evs-ptr/rust-rcon-web" variant="ghost" size="sm" class="gap-1">
