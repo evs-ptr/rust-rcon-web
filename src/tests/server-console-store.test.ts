@@ -28,12 +28,12 @@ describe('ServerConsoleStore', function () {
 
 		const { ServerConsoleStore } = await import('../routes/rcon/stores/server-console.svelte')
 
-		let resolveResponse: ((value: CommandResponse | undefined) => void) | null = null
+		let resolveResponse!: (value: CommandResponse | undefined) => void
 		const responsePromise = new Promise<CommandResponse | undefined>((resolve) => {
 			resolveResponse = resolve
 		})
 
-		const store = new ServerConsoleStore(createConfig())
+		const store = new ServerConsoleStore(createConfig() as never)
 		const server = createServerStub(responsePromise)
 
 		const populatePromise = store.tryPopulateConsole(server as never)
@@ -54,7 +54,7 @@ describe('ServerConsoleStore', function () {
 			},
 		]
 
-		resolveResponse?.({
+		resolveResponse({
 			Message: JSON.stringify(history),
 			Identifier: 123,
 			Type: LogType.Generic,

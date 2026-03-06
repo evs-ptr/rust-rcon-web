@@ -199,12 +199,7 @@
 						: 'Chat is unavailable while disconnected'}
 				disabled={!server.canSendCommands()}
 			/>
-			<Button
-				type="submit"
-				disabled={!server.canSendCommands()}
-			>
-				Send
-			</Button>
+			<Button type="submit" disabled={!server.canSendCommands()}>Send</Button>
 		</form>
 	</div>
 </div>
