@@ -72,6 +72,7 @@ export class ServerConsoleStore {
 	public isPopulatedConsole: boolean = $state(false)
 	public isPopulatingConsole: boolean = $state(false)
 	public populateConsoleError: string | null = $state(null)
+	private didPopulateInitialConsole = false
 	private populateRetryTimeout: ReturnType<typeof setTimeout> | null = null
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
@@ -113,6 +114,21 @@ export class ServerConsoleStore {
 		if (msgs.length > 0) {
 			this.renderVersion += 1
 		}
+	}
+
+	private prependMessages(msgs: ServerConsoleMessage[]) {
+		if (msgs.length === 0) {
+			return
+		}
+
+		this.messages.unshift(...msgs)
+
+		if (this.config.consoleHistoryLimitEnable && this.messages.length > this.config.consoleHistoryLimit) {
+			const toRemove = this.messages.length - this.config.consoleHistoryLimit
+			this.messages.splice(0, toRemove)
+		}
+
+		this.renderVersion += 1
 	}
 
 	private schedulePendingFlush() {
@@ -232,7 +248,7 @@ export class ServerConsoleStore {
 	}
 
 	async tryPopulateConsole(server: RustServer) {
-		if (this.isPopulatedConsole || this.isPopulatingConsole || !server.canProbeCommandReadiness()) {
+		if (this.didPopulateInitialConsole || this.isPopulatingConsole || !server.canProbeCommandReadiness()) {
 			return
 		}
 
@@ -248,10 +264,6 @@ export class ServerConsoleStore {
 				return
 			}
 
-			if (this.isPopulatedConsole) {
-				return
-			}
-
 			const junkyard: ServerConsoleMessage[] = []
 
 			const messages = JSON.parse(response.Message) as HistoryMessage[]
@@ -263,12 +275,13 @@ export class ServerConsoleStore {
 					INITIAL_CONSOLE_SYNC_TIMEOUT
 				)
 				if (!responseChat) {
-					this.pushMessages(junkyard)
+					if (this.messages.length > 0) {
+						this.prependMessages(junkyard)
+					} else {
+						this.pushMessages(junkyard)
+					}
+					this.didPopulateInitialConsole = true
 					this.isPopulatedConsole = true
-					return
-				}
-
-				if (this.isPopulatedConsole) {
 					return
 				}
 
@@ -278,8 +291,14 @@ export class ServerConsoleStore {
 				}
 			}
 
-			this.pushMessages(junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
+			const sortedMessages = junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+			if (this.messages.length > 0) {
+				this.prependMessages(sortedMessages)
+			} else {
+				this.pushMessages(sortedMessages)
+			}
 
+			this.didPopulateInitialConsole = true
 			this.isPopulatedConsole = true
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : 'Failed to load recent console history'
@@ -359,6 +378,7 @@ export class ServerConsoleStore {
 		this.pendingMessages = []
 		this.pendingCommandResponses.clear()
 		this.messages.length = 0
+		this.didPopulateInitialConsole = false
 		this.isPopulatingConsole = false
 		this.populateConsoleError = null
 	}
