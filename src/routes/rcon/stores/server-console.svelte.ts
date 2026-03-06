@@ -68,6 +68,8 @@ export class ServerConsoleStore {
 	public lastContainerHeight: string | null = null
 
 	public isPopulatedConsole: boolean = $state(false)
+	public isPopulatingConsole: boolean = $state(false)
+	public populateConsoleError: string | null = $state(null)
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
 	private pendingMessages: ServerConsoleMessage[] = []
@@ -216,44 +218,51 @@ export class ServerConsoleStore {
 	}
 
 	async tryPopulateConsole(server: RustServer) {
-		if (this.isPopulatedConsole) {
+		if (this.isPopulatedConsole || this.isPopulatingConsole || !server.canSendCommands()) {
 			return
 		}
 
-		const response = await server.sendCommandGetResponse(`console.tail ${this.config.consoleHistoryFetch}`)
-		if (!response) {
-			return // TODO: handle error
-		}
-
-		const junkyard: ServerConsoleMessage[] = []
-
 		try {
+			this.isPopulatingConsole = true
+			this.populateConsoleError = null
+
+			const response = await server.sendCommandGetResponse(`console.tail ${this.config.consoleHistoryFetch}`)
+			if (!response) {
+				return
+			}
+
+			const junkyard: ServerConsoleMessage[] = []
+
 			const messages = JSON.parse(response.Message) as HistoryMessage[]
 			junkyard.push(...messages.map(this.parseHistoryMessage.bind(this)))
+
+			if (this.config.consoleChatInclude) {
+				const responseChat = await server.sendCommandGetResponse(
+					`chat.tail ${this.config.consoleChatHistoryFetch}`
+				)
+				if (!responseChat) {
+					this.pushMessages(junkyard)
+					this.isPopulatedConsole = true
+					console.error('Failed to get chat.tail')
+					return
+				}
+
+				const messagesChat = parseChatEntries(responseChat)
+				if (messagesChat) {
+					junkyard.push(...messagesChat.map(this.parseChatMessage.bind(this)))
+				}
+			}
+
+			this.pushMessages(junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
+
+			this.isPopulatedConsole = true
 		} catch (error) {
-			console.error(error)
+			this.populateConsoleError =
+				error instanceof Error ? error.message : 'Failed to load recent console history'
+			console.error('Failed to populate console:', error)
+		} finally {
+			this.isPopulatingConsole = false
 		}
-
-		if (this.config.consoleChatInclude) {
-			const responseChat = await server.sendCommandGetResponse(
-				`chat.tail ${this.config.consoleChatHistoryFetch}`
-			)
-			if (!responseChat) {
-				this.pushMessages(junkyard)
-				this.isPopulatedConsole = true
-				console.error('Failed to get chat.tail')
-				return // TODO: handle error
-			}
-
-			const messagesChat = parseChatEntries(responseChat)
-			if (messagesChat) {
-				junkyard.push(...messagesChat.map(this.parseChatMessage.bind(this)))
-			}
-		}
-
-		this.pushMessages(junkyard.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()))
-
-		this.isPopulatedConsole = true
 	}
 
 	onMessageGeneral(msg: CommandResponse) {
@@ -309,6 +318,8 @@ export class ServerConsoleStore {
 		this.pendingMessages = []
 		this.pendingCommandResponses.clear()
 		this.messages.length = 0
+		this.isPopulatingConsole = false
+		this.populateConsoleError = null
 	}
 }
 

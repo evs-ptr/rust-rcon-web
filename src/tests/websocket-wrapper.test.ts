@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { WebSocketWrapper } from '../routes/rcon/core/websocket-wrapper'
+import {
+	WebSocketConnectionStatus,
+	type WebSocketLifecycleEvent,
+	WebSocketWrapper,
+} from '../routes/rcon/core/websocket-wrapper'
 import { FakeWebSocket } from './lib/fake-websocket'
 
 let realWebSocket: typeof WebSocket | undefined
@@ -62,6 +66,10 @@ describe('WebSocketWrapper', function (): void {
 
 	it('connect() rejects on socket error', async function (): Promise<void> {
 		const wrapper = new WebSocketWrapper('ws://example')
+		const events: WebSocketLifecycleEvent[] = []
+		wrapper.subscribeOnLifecycle('test', (event) => {
+			events.push(event)
+		})
 		const connectPromise = wrapper.connect()
 
 		const socket = FakeWebSocket.instances[0]
@@ -71,6 +79,7 @@ describe('WebSocketWrapper', function (): void {
 
 		await expect(connectPromise).rejects.toBe(testError)
 		expect(wrapper.isConnected).toBe(false)
+		expect(events.at(-1)?.status).toBe(WebSocketConnectionStatus.Disconnected)
 	})
 
 	it('send() forwards data to the underlying socket', async function (): Promise<void> {
@@ -155,6 +164,38 @@ describe('WebSocketWrapper', function (): void {
 		vi.useRealTimers()
 	})
 
+	it('emits lifecycle events for disconnect and reconnect', async function (): Promise<void> {
+		vi.useFakeTimers()
+
+		const wrapper = new WebSocketWrapper('ws://example')
+		const events: WebSocketLifecycleEvent[] = []
+		wrapper.subscribeOnLifecycle('test', (event) => {
+			events.push(event)
+		})
+
+		await wrapper.connect()
+
+		const firstSocket = FakeWebSocket.instances[0]
+		firstSocket.close(1011, 'server crash')
+
+		await vi.advanceTimersByTimeAsync(1_000)
+		await vi.runOnlyPendingTimersAsync()
+
+		expect(events.some((event) => event.status === WebSocketConnectionStatus.Disconnected)).toBe(true)
+		expect(
+			events.some(
+				(event) =>
+					event.status === WebSocketConnectionStatus.Reconnecting &&
+					event.attempt === 1 &&
+					event.delayMs === 1_000
+			)
+		).toBe(true)
+		expect(events.at(-1)?.status).toBe(WebSocketConnectionStatus.Connected)
+		expect(events.at(-1)?.wasReconnect).toBe(true)
+
+		vi.useRealTimers()
+	})
+
 	it('does not reconnect after a normal close', async function (): Promise<void> {
 		vi.useFakeTimers()
 
@@ -203,6 +244,31 @@ describe('WebSocketWrapper', function (): void {
 		expect(FakeWebSocket.instances.length).toBe(3) // Initial + 2 attempts
 
 		errorSpy.mockRestore()
+		vi.useRealTimers()
+	})
+
+	it('emits reconnect failed when max attempts are exhausted', async function (): Promise<void> {
+		vi.useFakeTimers()
+
+		const wrapper = new WebSocketWrapper('ws://example')
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		;(wrapper as any).maxReconnectAttempts = 1
+		const events: WebSocketLifecycleEvent[] = []
+		wrapper.subscribeOnLifecycle('test', (event) => {
+			events.push(event)
+		})
+
+		await wrapper.connect()
+		FakeWebSocket.shouldFailOnConnect = true
+
+		const firstSocket = FakeWebSocket.instances[0]
+		firstSocket.close(1011, 'server crash')
+
+		await vi.advanceTimersByTimeAsync(1_000)
+		await vi.runOnlyPendingTimersAsync()
+
+		expect(events.at(-1)?.status).toBe(WebSocketConnectionStatus.ReconnectFailed)
+
 		vi.useRealTimers()
 	})
 })

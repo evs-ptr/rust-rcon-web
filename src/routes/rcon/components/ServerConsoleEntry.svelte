@@ -37,6 +37,17 @@
 				'font-medium',
 			]
 		}
+		if (consoleMessageType === ServerConsoleMessageType.System) {
+			return [
+				'pl-2',
+				'border-l-2',
+				'border-sky-500/60',
+				'text-sky-700 dark:text-sky-300',
+				'bg-sky-500/10',
+				'rounded-r',
+				'italic',
+			]
+		}
 		switch (logType) {
 			case LogType.Error:
 				return [

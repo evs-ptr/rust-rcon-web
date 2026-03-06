@@ -4,6 +4,7 @@
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import { tick } from 'svelte'
 	import type { RustServer } from '../core/rust-server.svelte'
+	import { WebSocketConnectionStatus } from '../core/websocket-wrapper'
 	import {
 		getServerConsoleStore,
 		ServerConsoleMessageType,
@@ -22,7 +23,44 @@
 	let consoleContainer: HTMLDivElement | undefined
 	let pendingScrollSync = false
 	let didRestoreScrollPosition = false
+	let isManualReconnectPending = false
+	let lastLifecycleNoticeAt: number | null = null
 	const SCROLL_THRESHOLD = 16 * 2
+
+	function formatDelay(delayMs: number | null) {
+		if (delayMs == null) {
+			return null
+		}
+
+		if (delayMs < 1_000) {
+			return `${delayMs} ms`
+		}
+
+		return `${(delayMs / 1_000).toFixed(1)}s`
+	}
+
+	function getEmptyStateText() {
+		if (server.connectionStatus === WebSocketConnectionStatus.Connected) {
+			if (store.populateConsoleError) {
+				return 'Connected, but recent console history could not be loaded yet.'
+			}
+
+			return 'Connected. Waiting for the first console or chat messages from the server.'
+		}
+
+		switch (server.connectionStatus) {
+			case WebSocketConnectionStatus.Connecting:
+				return 'Connecting to RCON...'
+			case WebSocketConnectionStatus.Reconnecting:
+				return `Reconnecting to RCON${server.reconnectDelayMs ? ` in ${formatDelay(server.reconnectDelayMs)}` : ''}${server.reconnectAttempt ? ` (attempt ${server.reconnectAttempt})` : ''}.`
+			case WebSocketConnectionStatus.ReconnectFailed:
+				return 'Disconnected from RCON. Automatic reconnect stopped.'
+			case WebSocketConnectionStatus.Disconnected:
+				return 'Disconnected from RCON.'
+			default:
+				return 'Not connected.'
+		}
+	}
 
 	function isNearBottom() {
 		const SCROLL_THRESHOLD = 16 * 2
@@ -134,11 +172,68 @@
 		store.trySubscribeToMessagesPlayerRelated(server)
 	})
 
+	$effect(() => {
+		const event = server.lastLifecycleEvent
+		if (!event) {
+			return
+		}
+
+		const eventTimestamp = event.at.getTime()
+		if (lastLifecycleNoticeAt === eventTimestamp) {
+			return
+		}
+		lastLifecycleNoticeAt = eventTimestamp
+
+		switch (event.status) {
+			case WebSocketConnectionStatus.Connected:
+				store.addMessageRaw(
+					event.wasReconnect ? 'Reconnected to RCON.' : 'Connected to RCON.',
+					ServerConsoleMessageType.System
+				)
+				break
+			case WebSocketConnectionStatus.Reconnecting:
+				store.addMessageRaw(
+					`Lost RCON connection. Reconnecting${event.delayMs ? ` in ${formatDelay(event.delayMs)}` : ''}${event.attempt ? ` (attempt ${event.attempt})` : ''}.`,
+					ServerConsoleMessageType.System
+				)
+				break
+			case WebSocketConnectionStatus.ReconnectFailed:
+				store.addMessageRaw(
+					'Disconnected from RCON. Automatic reconnect stopped.',
+					ServerConsoleMessageType.System
+				)
+				break
+			case WebSocketConnectionStatus.Disconnected:
+				if (server.connectionWasEstablished && !event.wasReconnect) {
+					store.addMessageRaw('Disconnected from RCON.', ServerConsoleMessageType.System)
+				}
+				break
+			default:
+				break
+		}
+	})
+
+	async function reconnect() {
+		if (isManualReconnectPending) {
+			return
+		}
+
+		isManualReconnectPending = true
+		try {
+			await server.connect()
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Unknown connection error'
+			store.addMessageRaw(`Manual reconnect failed: ${message}`, ServerConsoleMessageType.System)
+		} finally {
+			isManualReconnectPending = false
+		}
+	}
+
 	function handleSubmit(e: SubmitEvent) {
 		// prevent unfocus
 		e.preventDefault()
 
-		if (!store.commandInput.trim()) {
+		if (!store.commandInput.trim() || !server.canSendCommands()) {
 			return
 		}
 
@@ -190,7 +285,7 @@
 		class="bg-card flex h-150 resize-y flex-col overflow-x-scroll overflow-y-scroll overscroll-contain rounded-md border"
 	>
 		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
-			{#if !store.isPopulatedConsole}
+			{#if !store.isPopulatedConsole && store.isPopulatingConsole && server.connectionStatus === WebSocketConnectionStatus.Connected}
 				{@const skeletonClass = 'bg-muted h-4 animate-pulse rounded-lg mt-2.5'}
 				<div class={[skeletonClass, 'w-1/3']}></div>
 				<div class={[skeletonClass, 'w-1/2']}></div>
@@ -201,6 +296,12 @@
 				<div class={[skeletonClass, 'w-1/5']}></div>
 				<div class={[skeletonClass, 'w-5/6']}></div>
 				<div class={[skeletonClass, 'w-2/5']}></div>
+			{:else if !store.isPopulatedConsole || store.messages.length === 0}
+				<div
+					class="text-muted-foreground flex min-h-48 items-center justify-center px-4 py-8 text-center text-sm whitespace-normal"
+				>
+					{getEmptyStateText()}
+				</div>
 			{:else}
 				{#each store.messages as message (message.id)}
 					<ServerConsoleEntry {message} showTimestamp={config.consoleShowTimestamp} />
@@ -215,9 +316,18 @@
 				onkeydown={handleKeydown}
 				type="text"
 				class="flex-1"
-				placeholder="Enter command..."
+				placeholder={server.canSendCommands()
+					? 'Enter command...'
+					: 'Commands are unavailable while disconnected'}
+				disabled={!server.canSendCommands()}
 			/>
-			<Button type="submit">Send</Button>
+			<Button
+				type={server.canSendCommands() ? 'submit' : 'button'}
+				onclick={!server.canSendCommands() ? reconnect : undefined}
+				disabled={isManualReconnectPending}
+			>
+				{server.canSendCommands() ? 'Send' : 'Reconnect'}
+			</Button>
 		</form>
 	</div>
 </div>

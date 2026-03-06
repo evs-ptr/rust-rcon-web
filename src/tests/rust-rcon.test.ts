@@ -121,6 +121,27 @@ describe('RustRconConnection', function (): void {
 		expect(onCommand).toHaveBeenCalledWith(commandMsg)
 	})
 
+	it('emits message activity when a valid message is received', async function (): Promise<void> {
+		const conn = new RustRconConnection('ws://example')
+		await conn.connect()
+
+		const socket = FakeWebSocket.instances[0]
+		const onActivity = vi.fn()
+		conn.subscribeOnMessageActivity('activity', onActivity)
+
+		const generalMsg: CommandResponse = {
+			Message: 'Welcome',
+			Identifier: 0,
+			Type: LogType.Generic,
+			Stacktrace: '',
+		}
+		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(generalMsg) }))
+		await flushBatchedMessages()
+
+		expect(onActivity).toHaveBeenCalledTimes(1)
+		expect(onActivity).toHaveBeenCalledWith(generalMsg, expect.any(Date))
+	})
+
 	it('disconnect() clears maps and subscriptions', async function (): Promise<void> {
 		const conn = new RustRconConnection('ws://example')
 		await conn.connect()

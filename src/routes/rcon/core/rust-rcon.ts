@@ -37,6 +37,8 @@ export class RustRconConnection extends WebSocketWrapper {
 	private readonly subscriptionsOnMessagePlayerRelated: Map<string, (msg: CommandResponse) => void> =
 		new Map()
 	private readonly subscriptionsOnMessageCommand: Map<string, (msg: CommandResponse) => void> = new Map()
+	private readonly subscriptionsOnMessageActivity: Map<string, (msg: CommandResponse, at: Date) => void> =
+		new Map()
 	private pendingMessages: CommandResponse[] = []
 	private pendingFrameHandle: number | null = null
 
@@ -101,6 +103,7 @@ export class RustRconConnection extends WebSocketWrapper {
 		this.subscriptionsOnMessageGeneral.clear()
 		this.subscriptionsOnMessagePlayerRelated.clear()
 		this.subscriptionsOnMessageCommand.clear()
+		this.subscriptionsOnMessageActivity.clear()
 	}
 
 	onMessage(event: MessageEvent) {
@@ -110,6 +113,8 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		try {
 			const msg = JSON.parse(data) as CommandResponse
+			const receivedAt = new Date()
+			this.subscriptionsOnMessageActivity.forEach((onMessageActivity) => onMessageActivity(msg, receivedAt))
 			this.pendingMessages.push(msg)
 			this.schedulePendingFlush()
 		} catch (error) {
@@ -133,6 +138,14 @@ export class RustRconConnection extends WebSocketWrapper {
 	subscribeOnMessageCommand(subscribeId: string, onMessageCommand: (msg: CommandResponse) => void) {
 		this.subscriptionsOnMessageCommand.set(subscribeId, onMessageCommand)
 		return () => this.subscriptionsOnMessageCommand.delete(subscribeId)
+	}
+
+	subscribeOnMessageActivity(
+		subscribeId: string,
+		onMessageActivity: (msg: CommandResponse, at: Date) => void
+	) {
+		this.subscriptionsOnMessageActivity.set(subscribeId, onMessageActivity)
+		return () => this.subscriptionsOnMessageActivity.delete(subscribeId)
 	}
 
 	private takeNextMsgId(): number {

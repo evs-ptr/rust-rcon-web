@@ -4,6 +4,7 @@
 	import PlusIcon from '@lucide/svelte/icons/plus'
 	import XIcon from '@lucide/svelte/icons/x'
 	import type { RustServer } from '../core/rust-server.svelte'
+	import { WebSocketConnectionStatus } from '../core/websocket-wrapper'
 	import { ServersManager } from '../stores/servers-manager.svelte'
 
 	interface Props {
@@ -24,6 +25,21 @@
 	function deleteServer(server: RustServer) {
 		serversManager.deleteServer(server)
 	}
+
+	function getStatusClasses(server: RustServer) {
+		switch (server.connectionStatus) {
+			case WebSocketConnectionStatus.Connected:
+				return 'bg-emerald-500'
+			case WebSocketConnectionStatus.Connecting:
+			case WebSocketConnectionStatus.Reconnecting:
+				return 'bg-amber-500'
+			case WebSocketConnectionStatus.Disconnected:
+			case WebSocketConnectionStatus.ReconnectFailed:
+				return 'bg-destructive'
+			default:
+				return 'bg-muted-foreground/40'
+		}
+	}
 </script>
 
 <div class="flex flex-row flex-wrap gap-2">
@@ -37,8 +53,7 @@
 				}}
 				onclick={() => switchServer(server)}
 			>
-				<!-- TODO: is connected indicator -->
-				<!-- TODO: server name if exists -->
+				<span class={['size-2 rounded-full', getStatusClasses(server)]}></span>
 				<span>{server.displayName}</span>
 				<!-- TODO: server fps -->
 			</Button>

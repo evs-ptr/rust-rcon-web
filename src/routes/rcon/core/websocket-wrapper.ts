@@ -1,9 +1,30 @@
+export enum WebSocketConnectionStatus {
+	Idle = 'idle',
+	Connecting = 'connecting',
+	Connected = 'connected',
+	Reconnecting = 'reconnecting',
+	Disconnected = 'disconnected',
+	ReconnectFailed = 'reconnect_failed',
+}
+
+export interface WebSocketLifecycleEvent {
+	status: WebSocketConnectionStatus
+	at: Date
+	attempt: number
+	delayMs: number | null
+	closeCode: number | null
+	reason: string | null
+	error: Error | Event | null
+	wasReconnect: boolean
+}
+
 export class WebSocketWrapper {
 	private url: string
 	private ws: WebSocket | null = null
 
 	public isConnected = false
 	public shouldReconnect = true
+	public connectionStatus = WebSocketConnectionStatus.Idle
 
 	private reconnectAttempts = 0
 	private maxReconnectAttempts = 50
@@ -14,9 +35,45 @@ export class WebSocketWrapper {
 	private connectPromise: Promise<unknown> | null = null
 	private connectResolve: ((value: unknown) => void) | null = null
 	private connectReject: ((reason: Error) => void) | null = null
+	private lastCloseCode: number | null = null
+	private lastCloseReason: string | null = null
+	private hasConnectedBefore = false
+	private lifecycleListeners = new Map<string, (event: WebSocketLifecycleEvent) => void>()
 
 	constructor(url: string) {
 		this.url = url
+	}
+
+	subscribeOnLifecycle(subscribeId: string, onLifecycle: (event: WebSocketLifecycleEvent) => void) {
+		this.lifecycleListeners.set(subscribeId, onLifecycle)
+		onLifecycle(this.createLifecycleEvent(this.connectionStatus))
+		return () => this.lifecycleListeners.delete(subscribeId)
+	}
+
+	private createLifecycleEvent(
+		status: WebSocketConnectionStatus,
+		overrides: Partial<Omit<WebSocketLifecycleEvent, 'status' | 'at'>> = {}
+	): WebSocketLifecycleEvent {
+		return {
+			status,
+			at: new Date(),
+			attempt: this.reconnectAttempts,
+			delayMs: null,
+			closeCode: this.lastCloseCode,
+			reason: this.lastCloseReason,
+			error: null,
+			wasReconnect: this.hasConnectedBefore || this.reconnectAttempts > 0,
+			...overrides,
+		}
+	}
+
+	private emitLifecycle(
+		status: WebSocketConnectionStatus,
+		overrides: Partial<Omit<WebSocketLifecycleEvent, 'status' | 'at'>> = {}
+	) {
+		this.connectionStatus = status
+		const event = this.createLifecycleEvent(status, overrides)
+		this.lifecycleListeners.forEach((listener) => listener(event))
 	}
 
 	connect(): Promise<unknown> {
@@ -30,6 +87,11 @@ export class WebSocketWrapper {
 			// to allow for consistent `await` behavior for callers who might have
 			// missed the initial connection.
 			return this.connectPromise ?? Promise.resolve()
+		}
+
+		this.shouldReconnect = true
+		if (this.reconnectAttempts === 0) {
+			this.emitLifecycle(WebSocketConnectionStatus.Connecting)
 		}
 
 		const promise1 = new Promise((resolve, reject) => {
@@ -53,6 +115,10 @@ export class WebSocketWrapper {
 				this.ws.close()
 			}
 			this.resetState()
+			this.emitLifecycle(WebSocketConnectionStatus.Disconnected, {
+				error: error as Error,
+				wasReconnect: this.reconnectAttempts > 0,
+			})
 			throw error
 		})
 		return this.connectPromise
@@ -69,6 +135,7 @@ export class WebSocketWrapper {
 	private async handleReconnect() {
 		if (!this.shouldReconnect || this.reconnectAttempts >= this.maxReconnectAttempts) {
 			console.error('Max reconnection attempts reached or reconnection disabled')
+			this.emitLifecycle(WebSocketConnectionStatus.ReconnectFailed)
 			return
 		}
 
@@ -79,10 +146,15 @@ export class WebSocketWrapper {
 			clearTimeout(this.reconnectTimeout)
 		}
 
+		this.emitLifecycle(WebSocketConnectionStatus.Reconnecting, {
+			attempt: this.reconnectAttempts,
+			delayMs: delay,
+			wasReconnect: true,
+		})
+
 		this.reconnectTimeout = setTimeout(async () => {
 			try {
 				await this.connect()
-				this.reconnectAttempts = 0 // Reset on successful connection
 			} catch (error) {
 				console.error('Reconnection failed:', error)
 				this.handleReconnect()
@@ -126,11 +198,30 @@ export class WebSocketWrapper {
 
 		this.unbindEvents()
 		this.ws.close(1000, 'done')
+		this.lastCloseCode = 1000
+		this.lastCloseReason = 'Disconnected manually'
 		this.resetState()
+		this.emitLifecycle(WebSocketConnectionStatus.Disconnected, { wasReconnect: false })
 	}
 
 	onOpen() {
 		this.isConnected = true
+		const wasReconnect = this.hasConnectedBefore || this.reconnectAttempts > 0
+		this.hasConnectedBefore = true
+		if (this.reconnectTimeout) {
+			clearTimeout(this.reconnectTimeout)
+			this.reconnectTimeout = null
+		}
+		this.emitLifecycle(WebSocketConnectionStatus.Connected, {
+			wasReconnect,
+			attempt: this.reconnectAttempts,
+			delayMs: null,
+			closeCode: null,
+			reason: null,
+		})
+		this.reconnectAttempts = 0
+		this.lastCloseCode = null
+		this.lastCloseReason = null
 		this.connectResolve?.(undefined)
 	}
 
@@ -147,12 +238,18 @@ export class WebSocketWrapper {
 	}
 
 	onClose(event: CloseEvent) {
+		this.lastCloseCode = event.code
+		this.lastCloseReason = event.reason || null
 		this.resetState()
 
 		// Don't reconnect if it was a normal closure
 		if (event.code !== 1000 && this.shouldReconnect) {
+			this.emitLifecycle(WebSocketConnectionStatus.Disconnected)
 			this.handleReconnect()
+			return
 		}
+
+		this.emitLifecycle(WebSocketConnectionStatus.Disconnected)
 	}
 
 	send(data: string | ArrayBufferLike | Blob | ArrayBufferView): boolean {
