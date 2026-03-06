@@ -4,6 +4,9 @@ import { parseChatEntries, parseChatEntry, type ChatEntry } from '../core/rust-r
 import { LogType, type CommandResponse } from '../core/rust-rcon.types'
 import type { RustServer } from '../core/rust-server.svelte'
 
+const INITIAL_CHAT_SYNC_TIMEOUT = 20_000
+const INITIAL_CHAT_SYNC_RETRY_DELAY = 3_000
+
 function scheduleNextFrame(callback: () => void): number {
 	if (typeof requestAnimationFrame === 'function') {
 		return requestAnimationFrame(callback)
@@ -45,7 +48,11 @@ export class ServerChatStore {
 	public lastContainerHeight: string | null = null
 
 	public isPopulatedChat: boolean = $state(false)
+	public isPopulatingChat: boolean = $state(false)
+	public populateChatError: string | null = $state(null)
 
+	private didPopulateInitialChat = false
+	private populateRetryTimeout: ReturnType<typeof setTimeout> | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
 	private pendingMessages: ServerChatMessage[] = []
 	private pendingFrameHandle: number | null = null
@@ -86,6 +93,21 @@ export class ServerChatStore {
 		}
 	}
 
+	private prependMessages(msgs: ServerChatMessage[]) {
+		if (msgs.length === 0) {
+			return
+		}
+
+		this.chatMessages.unshift(...msgs)
+
+		if (this.config.chatHistoryLimitEnable && this.chatMessages.length > this.config.chatHistoryLimit) {
+			const toRemove = this.chatMessages.length - this.config.chatHistoryLimit
+			this.chatMessages.splice(0, toRemove)
+		}
+
+		this.renderVersion += 1
+	}
+
 	private schedulePendingFlush() {
 		if (this.pendingFrameHandle != null) {
 			return
@@ -111,6 +133,17 @@ export class ServerChatStore {
 		this.schedulePendingFlush()
 	}
 
+	private schedulePopulateRetry(server: RustServer) {
+		if (this.populateRetryTimeout || this.didPopulateInitialChat) {
+			return
+		}
+
+		this.populateRetryTimeout = setTimeout(() => {
+			this.populateRetryTimeout = null
+			void this.tryPopulateChat(server)
+		}, INITIAL_CHAT_SYNC_RETRY_DELAY)
+	}
+
 	parseChatMessage(message: ChatEntry): ServerChatMessage {
 		return new ServerChatMessage(message)
 	}
@@ -129,30 +162,55 @@ export class ServerChatStore {
 	}
 
 	async tryPopulateChat(server: RustServer) {
-		if (this.isPopulatedChat) {
+		if (this.didPopulateInitialChat || this.isPopulatingChat || !server.canProbeCommandReadiness()) {
 			return
 		}
 
-		const chatMessages: ServerChatMessage[] = []
+		try {
+			this.isPopulatingChat = true
+			this.populateChatError = null
 
-		const responseChat = await server.sendCommandGetResponse(`chat.tail ${this.config.chatHistoryFetch}`)
-		if (!responseChat) {
-			console.error('Failed to get chat.tail')
-			return
+			const chatMessages: ServerChatMessage[] = []
+
+			const responseChat = await server.sendCommandGetResponse(
+				`chat.tail ${this.config.chatHistoryFetch}`,
+				INITIAL_CHAT_SYNC_TIMEOUT
+			)
+			if (!responseChat) {
+				return
+			}
+
+			const messagesChat = parseChatEntries(responseChat)
+			if (messagesChat) {
+				chatMessages.push(...messagesChat.map(this.parseChatMessage.bind(this)))
+			}
+
+			if (this.chatMessages.length > 0) {
+				this.prependMessages(chatMessages)
+			} else {
+				this.pushMessages(chatMessages)
+			}
+
+			this.didPopulateInitialChat = true
+			this.isPopulatedChat = true
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to load recent chat history'
+
+			if (errorMessage === 'Timed out waiting for response' && server.canProbeCommandReadiness()) {
+				this.schedulePopulateRetry(server)
+				return
+			}
+
+			this.populateChatError = errorMessage
+			console.error('Failed to populate chat:', error)
+		} finally {
+			this.isPopulatingChat = false
 		}
-
-		const messagesChat = parseChatEntries(responseChat)
-		if (messagesChat) {
-			chatMessages.push(...messagesChat.map(this.parseChatMessage.bind(this)))
-		}
-
-		this.pushMessages(chatMessages)
-
-		this.isPopulatedChat = true
 	}
 
 	onMessagePlayerRelated(msg: CommandResponse) {
 		if (msg.Type == LogType.Chat) {
+			this.populateChatError = null
 			this.addChatMessageFromCommandResponse(msg)
 		}
 	}
@@ -170,12 +228,19 @@ export class ServerChatStore {
 	destroy() {
 		this.unsubscribeOnMessagesPlayerRelated?.()
 		this.unsubscribeOnMessagesPlayerRelated = null
+		if (this.populateRetryTimeout != null) {
+			clearTimeout(this.populateRetryTimeout)
+			this.populateRetryTimeout = null
+		}
 		if (this.pendingFrameHandle != null) {
 			cancelScheduledFrame(this.pendingFrameHandle)
 			this.pendingFrameHandle = null
 		}
 		this.pendingMessages = []
 		this.chatMessages.length = 0
+		this.didPopulateInitialChat = false
+		this.isPopulatingChat = false
+		this.populateChatError = null
 	}
 }
 

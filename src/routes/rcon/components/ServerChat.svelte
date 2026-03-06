@@ -4,6 +4,7 @@
 	import { getConfigGlobalContext } from '$lib/config-global.svelte'
 	import { tick } from 'svelte'
 	import type { RustServer } from '../core/rust-server.svelte'
+	import { WebSocketConnectionStatus } from '../core/websocket-wrapper'
 	import { getServerChatStore, type ServerChatStore } from '../stores/server-chat.svelte'
 	import ServerChatEntry from './ServerChatEntry.svelte'
 
@@ -131,7 +132,7 @@
 		// prevent unfocus
 		e.preventDefault()
 
-		if (!store.chatCommandInput.trim()) {
+		if (!store.chatCommandInput.trim() || !server.canSendCommands()) {
 			return
 		}
 
@@ -191,9 +192,19 @@
 				onkeydown={handleKeydown}
 				type="text"
 				class="flex-1"
-				placeholder="Enter chat message..."
+				placeholder={server.canSendCommands()
+					? 'Enter chat message...'
+					: server.connectionStatus === WebSocketConnectionStatus.Connected
+						? 'Server is still starting...'
+						: 'Chat is unavailable while disconnected'}
+				disabled={!server.canSendCommands()}
 			/>
-			<Button type="submit">Send</Button>
+			<Button
+				type="submit"
+				disabled={!server.canSendCommands()}
+			>
+				Send
+			</Button>
 		</form>
 	</div>
 </div>
