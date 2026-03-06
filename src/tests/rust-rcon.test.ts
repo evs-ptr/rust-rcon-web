@@ -5,6 +5,10 @@ import { FakeWebSocket } from './lib/fake-websocket'
 
 let realWebSocket: typeof WebSocket | undefined
 
+async function flushBatchedMessages(): Promise<void> {
+	await new Promise((resolve) => setTimeout(resolve, 20))
+}
+
 beforeEach(function setUp(): void {
 	const globalObj = globalThis as { WebSocket?: typeof WebSocket }
 	realWebSocket = globalObj.WebSocket
@@ -102,6 +106,7 @@ describe('RustRconConnection', function (): void {
 			Stacktrace: '',
 		}
 		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(generalMsg) }))
+		await flushBatchedMessages()
 		expect(onGeneral).toHaveBeenCalledWith(generalMsg)
 		expect(onCommand).not.toHaveBeenCalled()
 
@@ -112,6 +117,7 @@ describe('RustRconConnection', function (): void {
 			Stacktrace: '',
 		}
 		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(commandMsg) }))
+		await flushBatchedMessages()
 		expect(onCommand).toHaveBeenCalledWith(commandMsg)
 	})
 
@@ -277,6 +283,7 @@ describe('RustRconConnection', function (): void {
 			Stacktrace: '',
 		}
 		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response1) }))
+		await vi.advanceTimersByTimeAsync(16)
 		expect(callback).toHaveBeenCalledWith(response1)
 		expect(callback).toHaveBeenCalledTimes(1)
 
@@ -287,6 +294,7 @@ describe('RustRconConnection', function (): void {
 			Stacktrace: '',
 		}
 		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response2) }))
+		await vi.advanceTimersByTimeAsync(16)
 		expect(callback).toHaveBeenCalledWith(response2)
 		expect(callback).toHaveBeenCalledTimes(2)
 
@@ -306,6 +314,7 @@ describe('RustRconConnection', function (): void {
 			Stacktrace: '',
 		}
 		socket.onmessage?.(new MessageEvent('message', { data: JSON.stringify(response3) }))
+		await vi.advanceTimersByTimeAsync(16)
 		expect(callback).toHaveBeenCalledTimes(2) // still 2
 	})
 

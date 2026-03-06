@@ -7,6 +7,21 @@ const MIN_INT_32 = -2_147_483_648
 const MSG_ID_SAFE_START = 1699
 const MSG_ID_REG_COMMAND = -698
 
+function scheduleNextFrame(callback: () => void): number {
+	if (typeof requestAnimationFrame === 'function') {
+		return requestAnimationFrame(callback)
+	}
+	return setTimeout(callback, 16) as unknown as number
+}
+
+function cancelScheduledFrame(handle: number) {
+	if (typeof cancelAnimationFrame === 'function') {
+		cancelAnimationFrame(handle)
+		return
+	}
+	clearTimeout(handle)
+}
+
 export class RustRconConnection extends WebSocketWrapper {
 	private msgIdNext: number = MIN_INT_32
 
@@ -22,13 +37,65 @@ export class RustRconConnection extends WebSocketWrapper {
 	private readonly subscriptionsOnMessagePlayerRelated: Map<string, (msg: CommandResponse) => void> =
 		new Map()
 	private readonly subscriptionsOnMessageCommand: Map<string, (msg: CommandResponse) => void> = new Map()
+	private pendingMessages: CommandResponse[] = []
+	private pendingFrameHandle: number | null = null
 
 	constructor(url: string) {
 		super(url)
 	}
 
+	private schedulePendingFlush() {
+		if (this.pendingFrameHandle != null) {
+			return
+		}
+
+		this.pendingFrameHandle = scheduleNextFrame(() => {
+			this.pendingFrameHandle = null
+			this.flushPendingMessages()
+		})
+	}
+
+	private flushPendingMessages() {
+		if (this.pendingMessages.length === 0) {
+			return
+		}
+
+		const messages = this.pendingMessages
+		this.pendingMessages = []
+
+		for (const msg of messages) {
+			const resolve = this.messagesMap.get(msg.Identifier)
+			if (resolve) {
+				this.messagesMap.delete(msg.Identifier)
+				resolve(msg)
+				continue
+			}
+
+			const callbackMany = this.messagesMapMany.get(msg.Identifier)
+			if (callbackMany) {
+				callbackMany(msg)
+				continue
+			}
+
+			if (msg.Identifier === 0) {
+				this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
+			} else if (msg.Identifier === -1) {
+				this.subscriptionsOnMessagePlayerRelated.forEach((onMessage) => onMessage(msg))
+			} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
+				this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
+			} else {
+				console.log('unknown message', msg)
+			}
+		}
+	}
+
 	disconnect() {
 		super.disconnect()
+		if (this.pendingFrameHandle != null) {
+			cancelScheduledFrame(this.pendingFrameHandle)
+			this.pendingFrameHandle = null
+		}
+		this.pendingMessages = []
 		this.messagesMap.clear()
 		this.messagesMapMany.clear()
 		this.subscriptionsOnMessageGeneral.clear()
@@ -43,29 +110,8 @@ export class RustRconConnection extends WebSocketWrapper {
 
 		try {
 			const msg = JSON.parse(data) as CommandResponse
-
-			const resolve = this.messagesMap.get(msg.Identifier)
-			if (resolve) {
-				this.messagesMap.delete(msg.Identifier)
-				resolve(msg)
-				return
-			}
-
-			const callbackMany = this.messagesMapMany.get(msg.Identifier)
-			if (callbackMany) {
-				callbackMany(msg)
-				return
-			}
-
-			if (msg.Identifier === 0) {
-				this.subscriptionsOnMessageGeneral.forEach((onMessage) => onMessage(msg))
-			} else if (msg.Identifier === -1) {
-				this.subscriptionsOnMessagePlayerRelated.forEach((onMessage) => onMessage(msg))
-			} else if (msg.Identifier === MSG_ID_REG_COMMAND) {
-				this.subscriptionsOnMessageCommand.forEach((onMessage) => onMessage(msg))
-			} else {
-				console.log('unknown message', msg)
-			}
+			this.pendingMessages.push(msg)
+			this.schedulePendingFlush()
 		} catch (error) {
 			console.error('Failed to parse message:', error)
 		}
