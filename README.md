@@ -30,7 +30,7 @@ This project was built to provide a modern, fast, and enjoyable RCon experience.
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) or [Node.js](https://nodejs.org/) (v20 or higher)
+- [Bun](https://bun.sh/)
 
 ### Installation & Running
 
@@ -44,24 +44,40 @@ This project was built to provide a modern, fast, and enjoyable RCon experience.
 2.  **Install dependencies:**
 
     ```sh
-    # With Bun
     bun install
-
-    # Or with npm
-    npm install
     ```
 
 3.  **Run the development server:**
 
     ```sh
-    # With Bun
     bun run dev
-
-    # Or with npm
-    npm run dev
     ```
 
 The application will be available at `http://localhost:5173`.
+
+## Quality Checks
+
+Use Bun for all project scripts.
+
+- **Run linting:**
+
+  ```sh
+  bun run lint
+  ```
+
+- **Format the codebase:**
+
+  ```sh
+  bun run format
+  ```
+
+- **Run Svelte type and diagnostics checks:**
+
+  ```sh
+  bun run check
+  ```
+
+Typical workflow for changes is to run `bun run lint` first, then `bun run format` near the end of the task.
 
 ## Testing
 
