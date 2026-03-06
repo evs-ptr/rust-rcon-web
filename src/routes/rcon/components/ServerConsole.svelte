@@ -23,8 +23,9 @@
 	let consoleContainer: HTMLDivElement | undefined
 	let pendingScrollSync = false
 	let didRestoreScrollPosition = false
-	let isManualReconnectPending = false
+	let isManualReconnectPending = $state(false)
 	let lastLifecycleNoticeAt: number | null = null
+	let shouldAnnounceCommandReadiness = false
 	const SCROLL_THRESHOLD = 16 * 2
 
 	function formatDelay(delayMs: number | null) {
@@ -41,22 +42,18 @@
 
 	function getEmptyStateText() {
 		if (server.connectionStatus === WebSocketConnectionStatus.Connected) {
-			if (store.populateConsoleError) {
-				return 'Connected, but recent console history could not be loaded yet.'
-			}
-
-			return 'Connected. Waiting for the first console or chat messages from the server.'
+			return null
 		}
 
 		switch (server.connectionStatus) {
 			case WebSocketConnectionStatus.Connecting:
-				return 'Connecting to RCON...'
+				return 'Connecting to RCon...'
 			case WebSocketConnectionStatus.Reconnecting:
-				return `Reconnecting to RCON${server.reconnectDelayMs ? ` in ${formatDelay(server.reconnectDelayMs)}` : ''}${server.reconnectAttempt ? ` (attempt ${server.reconnectAttempt})` : ''}.`
+				return `Reconnecting to RCon${server.reconnectDelayMs ? ` in ${formatDelay(server.reconnectDelayMs)}` : ''}${server.reconnectAttempt ? ` (attempt ${server.reconnectAttempt})` : ''}.`
 			case WebSocketConnectionStatus.ReconnectFailed:
-				return 'Disconnected from RCON. Automatic reconnect stopped.'
+				return 'Disconnected from RCon. Automatic reconnect stopped.'
 			case WebSocketConnectionStatus.Disconnected:
-				return 'Disconnected from RCON.'
+				return 'Disconnected from RCon.'
 			default:
 				return 'Not connected.'
 		}
@@ -186,31 +183,45 @@
 
 		switch (event.status) {
 			case WebSocketConnectionStatus.Connected:
+				shouldAnnounceCommandReadiness = !server.isCommandReady && !server.hasEverBeenCommandReady
 				store.addMessageRaw(
-					event.wasReconnect ? 'Reconnected to RCON.' : 'Connected to RCON.',
+					event.wasReconnect
+						? 'Reconnected to RCon.'
+						: shouldAnnounceCommandReadiness
+							? 'Connected to RCon. Server is still starting, waiting for command responses...'
+							: 'Connected to RCon.',
 					ServerConsoleMessageType.System
 				)
 				break
 			case WebSocketConnectionStatus.Reconnecting:
 				store.addMessageRaw(
-					`Lost RCON connection. Reconnecting${event.delayMs ? ` in ${formatDelay(event.delayMs)}` : ''}${event.attempt ? ` (attempt ${event.attempt})` : ''}.`,
+					`Lost RCon connection. Reconnecting${event.delayMs ? ` in ${formatDelay(event.delayMs)}` : ''}${event.attempt ? ` (attempt ${event.attempt})` : ''}.`,
 					ServerConsoleMessageType.System
 				)
 				break
 			case WebSocketConnectionStatus.ReconnectFailed:
 				store.addMessageRaw(
-					'Disconnected from RCON. Automatic reconnect stopped.',
+					'Disconnected from RCon. Automatic reconnect stopped.',
 					ServerConsoleMessageType.System
 				)
 				break
 			case WebSocketConnectionStatus.Disconnected:
 				if (server.connectionWasEstablished && !event.wasReconnect) {
-					store.addMessageRaw('Disconnected from RCON.', ServerConsoleMessageType.System)
+					store.addMessageRaw('Disconnected from RCon.', ServerConsoleMessageType.System)
 				}
 				break
 			default:
 				break
 		}
+	})
+
+	$effect(() => {
+		if (!shouldAnnounceCommandReadiness || !server.isCommandReady) {
+			return
+		}
+
+		shouldAnnounceCommandReadiness = false
+		store.addMessageRaw('Server is ready for RCon commands.', ServerConsoleMessageType.System)
 	})
 
 	async function reconnect() {
@@ -285,7 +296,7 @@
 		class="bg-card flex h-150 resize-y flex-col overflow-x-scroll overflow-y-scroll overscroll-contain rounded-md border"
 	>
 		<div class="mt-auto flex flex-col gap-0.5 p-2 font-mono text-xs text-nowrap">
-			{#if !store.isPopulatedConsole && store.isPopulatingConsole && server.connectionStatus === WebSocketConnectionStatus.Connected}
+			{#if store.messages.length === 0 && !store.isPopulatedConsole && store.isPopulatingConsole && server.connectionStatus === WebSocketConnectionStatus.Connected && server.isCommandReady}
 				{@const skeletonClass = 'bg-muted h-4 animate-pulse rounded-lg mt-2.5'}
 				<div class={[skeletonClass, 'w-1/3']}></div>
 				<div class={[skeletonClass, 'w-1/2']}></div>
@@ -296,12 +307,13 @@
 				<div class={[skeletonClass, 'w-1/5']}></div>
 				<div class={[skeletonClass, 'w-5/6']}></div>
 				<div class={[skeletonClass, 'w-2/5']}></div>
-			{:else if !store.isPopulatedConsole || store.messages.length === 0}
-				<div
-					class="text-muted-foreground flex min-h-48 items-center justify-center px-4 py-8 text-center text-sm whitespace-normal"
-				>
-					{getEmptyStateText()}
-				</div>
+			{:else if store.messages.length === 0}
+				{@const emptyStateText = getEmptyStateText()}
+				{#if emptyStateText}
+					<div class="text-muted-foreground px-2 py-1 text-xs whitespace-normal italic">
+						{emptyStateText}
+					</div>
+				{/if}
 			{:else}
 				{#each store.messages as message (message.id)}
 					<ServerConsoleEntry {message} showTimestamp={config.consoleShowTimestamp} />
@@ -318,15 +330,24 @@
 				class="flex-1"
 				placeholder={server.canSendCommands()
 					? 'Enter command...'
-					: 'Commands are unavailable while disconnected'}
+					: server.connectionStatus === WebSocketConnectionStatus.Connected
+						? 'Server is still starting...'
+						: 'Commands are unavailable while disconnected'}
 				disabled={!server.canSendCommands()}
 			/>
 			<Button
 				type={server.canSendCommands() ? 'submit' : 'button'}
-				onclick={!server.canSendCommands() ? reconnect : undefined}
-				disabled={isManualReconnectPending}
+				onclick={!server.canSendCommands() && server.connectionStatus !== WebSocketConnectionStatus.Connected
+					? reconnect
+					: undefined}
+				disabled={isManualReconnectPending ||
+					(!server.canSendCommands() && server.connectionStatus === WebSocketConnectionStatus.Connected)}
 			>
-				{server.canSendCommands() ? 'Send' : 'Reconnect'}
+				{server.canSendCommands()
+					? 'Send'
+					: server.connectionStatus === WebSocketConnectionStatus.Connected
+						? 'Starting...'
+						: 'Reconnect'}
 			</Button>
 		</form>
 	</div>

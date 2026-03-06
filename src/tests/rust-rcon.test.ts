@@ -219,6 +219,24 @@ describe('RustRconConnection', function (): void {
 		vi.useRealTimers()
 	})
 
+	it('sendCommandGetResponse() respects a custom timeout', async function (): Promise<void> {
+		vi.useFakeTimers()
+		const conn = new RustRconConnection('ws://example')
+		await conn.connect()
+
+		const priv = conn as unknown as { messagesMap: Map<number, unknown> }
+		const promise = conn.sendCommandGetResponse('who', 12_000)
+		const handled = expect(promise).rejects.toThrow('Timed out waiting for response')
+
+		await vi.advanceTimersByTimeAsync(6_000)
+		expect(priv.messagesMap.size).toBe(1)
+
+		await vi.advanceTimersByTimeAsync(6_000)
+		await handled
+		expect(priv.messagesMap.size).toBe(0)
+		vi.useRealTimers()
+	})
+
 	it('sendCommandGetResponse() rejects when send fails', async function (): Promise<void> {
 		const conn = new RustRconConnection('ws://example')
 		// Stub send to simulate failure

@@ -169,7 +169,7 @@ export class RustRconConnection extends WebSocketWrapper {
 		} satisfies CommandSend
 	}
 
-	sendCommandGetResponse(command: string): Promise<CommandResponse> {
+	sendCommandGetResponse(command: string, timeout: number = this.messageTimeOut): Promise<CommandResponse> {
 		const msgId = this.takeNextMsgId()
 
 		const promise1 = new Promise((resolve, reject) => {
@@ -190,7 +190,7 @@ export class RustRconConnection extends WebSocketWrapper {
 				if (this.messagesMap.delete(msgId)) {
 					reject(new Error('Timed out waiting for response'))
 				}
-			}, this.messageTimeOut)
+			}, timeout)
 		})
 
 		return Promise.race([promise1, promise2]) as Promise<CommandResponse>

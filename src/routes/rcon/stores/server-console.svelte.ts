@@ -5,6 +5,8 @@ import { LogType, type CommandResponse, type HistoryMessage } from '../core/rust
 import type { RustServer } from '../core/rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()
+const INITIAL_CONSOLE_SYNC_TIMEOUT = 20_000
+const INITIAL_CONSOLE_SYNC_RETRY_DELAY = 3_000
 
 function scheduleNextFrame(callback: () => void): number {
 	if (typeof requestAnimationFrame === 'function') {
@@ -70,6 +72,7 @@ export class ServerConsoleStore {
 	public isPopulatedConsole: boolean = $state(false)
 	public isPopulatingConsole: boolean = $state(false)
 	public populateConsoleError: string | null = $state(null)
+	private populateRetryTimeout: ReturnType<typeof setTimeout> | null = null
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
 	private pendingMessages: ServerConsoleMessage[] = []
@@ -147,6 +150,17 @@ export class ServerConsoleStore {
 		this.schedulePendingFlush()
 	}
 
+	private schedulePopulateRetry(server: RustServer) {
+		if (this.populateRetryTimeout || this.isPopulatedConsole) {
+			return
+		}
+
+		this.populateRetryTimeout = setTimeout(() => {
+			this.populateRetryTimeout = null
+			void this.tryPopulateConsole(server)
+		}, INITIAL_CONSOLE_SYNC_RETRY_DELAY)
+	}
+
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
 		const timestamp = new Date()
 		const msg = new ServerConsoleMessage(message, type, consoleType, timestamp)
@@ -218,7 +232,7 @@ export class ServerConsoleStore {
 	}
 
 	async tryPopulateConsole(server: RustServer) {
-		if (this.isPopulatedConsole || this.isPopulatingConsole || !server.canSendCommands()) {
+		if (this.isPopulatedConsole || this.isPopulatingConsole || !server.canProbeCommandReadiness()) {
 			return
 		}
 
@@ -226,8 +240,15 @@ export class ServerConsoleStore {
 			this.isPopulatingConsole = true
 			this.populateConsoleError = null
 
-			const response = await server.sendCommandGetResponse(`console.tail ${this.config.consoleHistoryFetch}`)
+			const response = await server.sendCommandGetResponse(
+				`console.tail ${this.config.consoleHistoryFetch}`,
+				INITIAL_CONSOLE_SYNC_TIMEOUT
+			)
 			if (!response) {
+				return
+			}
+
+			if (this.isPopulatedConsole) {
 				return
 			}
 
@@ -238,12 +259,16 @@ export class ServerConsoleStore {
 
 			if (this.config.consoleChatInclude) {
 				const responseChat = await server.sendCommandGetResponse(
-					`chat.tail ${this.config.consoleChatHistoryFetch}`
+					`chat.tail ${this.config.consoleChatHistoryFetch}`,
+					INITIAL_CONSOLE_SYNC_TIMEOUT
 				)
 				if (!responseChat) {
 					this.pushMessages(junkyard)
 					this.isPopulatedConsole = true
-					console.error('Failed to get chat.tail')
+					return
+				}
+
+				if (this.isPopulatedConsole) {
 					return
 				}
 
@@ -257,8 +282,16 @@ export class ServerConsoleStore {
 
 			this.isPopulatedConsole = true
 		} catch (error) {
-			this.populateConsoleError =
-				error instanceof Error ? error.message : 'Failed to load recent console history'
+			const errorMessage = error instanceof Error ? error.message : 'Failed to load recent console history'
+
+			// Early after connect the socket can be open while the server main thread
+			// still isn't servicing RCon commands yet. Retry quietly in that window.
+			if (errorMessage === 'Timed out waiting for response' && server.canProbeCommandReadiness()) {
+				this.schedulePopulateRetry(server)
+				return
+			}
+
+			this.populateConsoleError = errorMessage
 			console.error('Failed to populate console:', error)
 		} finally {
 			this.isPopulatingConsole = false
@@ -267,11 +300,15 @@ export class ServerConsoleStore {
 
 	onMessageGeneral(msg: CommandResponse) {
 		// console.log(msg)
+		this.isPopulatedConsole = true
+		this.populateConsoleError = null
 		this.addMessage(msg)
 	}
 
 	onMessagePlayerRelated(msg: CommandResponse) {
 		// console.log('onMessagePlayerRelated', msg)
+		this.isPopulatedConsole = true
+		this.populateConsoleError = null
 		switch (msg.Type) {
 			case LogType.Chat:
 				this.addChatMessageFromCommandResponse(msg)
@@ -311,6 +348,10 @@ export class ServerConsoleStore {
 		this.unsubscribeOnMessagesGeneral = null
 		this.unsubscribeOnMessagesPlayerRelated?.()
 		this.unsubscribeOnMessagesPlayerRelated = null
+		if (this.populateRetryTimeout != null) {
+			clearTimeout(this.populateRetryTimeout)
+			this.populateRetryTimeout = null
+		}
 		if (this.pendingFrameHandle != null) {
 			cancelScheduledFrame(this.pendingFrameHandle)
 			this.pendingFrameHandle = null

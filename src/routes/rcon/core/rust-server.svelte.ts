@@ -18,6 +18,8 @@ export class RustServer {
 	public lastConnectedAt: Date | null = $state(null)
 	public lastMessageAt: Date | null = $state(null)
 	public hasReceivedMessageSinceConnect: boolean = $state(false)
+	public isCommandReady: boolean = $state(false)
+	public hasEverBeenCommandReady: boolean = $state(false)
 	public lastLifecycleEvent: WebSocketLifecycleEvent | null = $state(null)
 
 	public displayName: string
@@ -28,6 +30,8 @@ export class RustServer {
 	private rcon: RustRconConnection | null = $state(null)
 	private unsubscribeOnLifecycle: (() => void) | null = null
 	private unsubscribeOnMessageActivity: (() => void) | null = null
+	private frameworkRetryTimeout: ReturnType<typeof setTimeout> | null = null
+	private frameworkProbeGeneration = 0
 
 	constructor(configServer: ConfigServer) {
 		this.configServer = configServer
@@ -37,6 +41,12 @@ export class RustServer {
 	}
 
 	cleanUp() {
+		if (this.frameworkRetryTimeout != null) {
+			clearTimeout(this.frameworkRetryTimeout)
+			this.frameworkRetryTimeout = null
+		}
+		this.frameworkProbeGeneration += 1
+
 		this.unsubscribeOnLifecycle?.()
 		this.unsubscribeOnLifecycle = null
 		this.unsubscribeOnMessageActivity?.()
@@ -98,6 +108,9 @@ export class RustServer {
 					this.connectionWasEstablished = true
 					this.lastConnectedAt = event.at
 					this.hasReceivedMessageSinceConnect = false
+					this.isCommandReady = false
+					this.isOxide = false
+					this.isCarbon = false
 					this.lastDisconnectCode = null
 					this.lastDisconnectReason = null
 					this.reconnectAttempt = 0
@@ -131,12 +144,54 @@ export class RustServer {
 	}
 
 	private updateFrameworkFlags() {
-		this.sendCommandGetResponse('o.version')
-			.then(() => (this.isOxide = true))
-			.catch(() => (this.isOxide = false))
-		this.sendCommandGetResponse('c.version')
-			.then(() => (this.isCarbon = true))
-			.catch(() => (this.isCarbon = false))
+		if (this.frameworkRetryTimeout != null) {
+			clearTimeout(this.frameworkRetryTimeout)
+			this.frameworkRetryTimeout = null
+		}
+
+		const generation = ++this.frameworkProbeGeneration
+		void this.probeFrameworkFlags(generation)
+	}
+
+	private async probeFrameworkFlags(generation: number) {
+		const [oxide, carbon] = await Promise.all([
+			this.probeFrameworkCommand('o.version'),
+			this.probeFrameworkCommand('c.version'),
+		])
+
+		if (generation !== this.frameworkProbeGeneration) {
+			return
+		}
+
+		if (oxide == null || carbon == null) {
+			if (this.connectionStatus === WebSocketConnectionStatus.Connected && !this.isCommandReady) {
+				this.frameworkRetryTimeout = setTimeout(() => {
+					this.frameworkRetryTimeout = null
+					void this.probeFrameworkFlags(generation)
+				}, 3_000)
+			}
+			return
+		}
+
+		this.isOxide = oxide
+		this.isCarbon = carbon
+	}
+
+	private async probeFrameworkCommand(command: string): Promise<boolean | null> {
+		try {
+			const response = await this.sendCommandGetResponse(command, 8_000)
+			return Boolean(response)
+		} catch (error) {
+			if (
+				!this.isCommandReady &&
+				error instanceof Error &&
+				error.message === 'Timed out waiting for response'
+			) {
+				return null
+			}
+
+			return false
+		}
 	}
 
 	subscribeOnMessageGeneral(subscribeId: string, onMessage: (msg: CommandResponse) => void) {
@@ -153,18 +208,25 @@ export class RustServer {
 		return this.rcon.subscribeOnMessagePlayerRelated(subscribeId, onMessage)
 	}
 
-	async sendCommandGetResponse(command: string) {
+	async sendCommandGetResponse(command: string, timeout?: number) {
 		if (!this.rcon || !this.connectionWasEstablished) {
 			return
 		}
-		return this.rcon.sendCommandGetResponse(command)
+		const response = await this.rcon.sendCommandGetResponse(command, timeout)
+		this.isCommandReady = true
+		this.hasEverBeenCommandReady = true
+		return response
 	}
 
 	sendCommandGetResponsesMany(command: string, callback: (msg: CommandResponse) => void) {
 		if (!this.rcon || !this.connectionWasEstablished) {
 			return
 		}
-		return this.rcon.sendCommandGetResponsesMany(command, callback)
+		return this.rcon.sendCommandGetResponsesMany(command, (msg) => {
+			this.isCommandReady = true
+			this.hasEverBeenCommandReady = true
+			callback(msg)
+		})
 	}
 
 	sendCommand(command: string) {
@@ -175,6 +237,10 @@ export class RustServer {
 	}
 
 	canSendCommands() {
+		return this.connectionStatus === WebSocketConnectionStatus.Connected && this.isCommandReady
+	}
+
+	canProbeCommandReadiness() {
 		return this.connectionStatus === WebSocketConnectionStatus.Connected
 	}
 
