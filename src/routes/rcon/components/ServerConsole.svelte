@@ -20,6 +20,7 @@
 	let store: ServerConsoleStore = $derived(getServerConsoleStore(server.id, config))
 
 	let consoleContainer: HTMLDivElement | undefined
+	let pendingScrollSync = false
 
 	function calculateShouldScroll() {
 		const SCROLL_THRESHOLD = 16 * 2
@@ -48,13 +49,27 @@
 		store.lastShouldScroll = calculateShouldScroll()
 	}
 
-	function scrollToBottomIfNeeded() {
-		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
-		if (shouldScroll) {
-			tick().then(() => {
-				scrollToBottom()
-			})
+	function queueScrollSync() {
+		if (!consoleContainer || pendingScrollSync) {
+			return
 		}
+
+		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
+		pendingScrollSync = true
+
+		tick().then(() => {
+			pendingScrollSync = false
+
+			if (!consoleContainer) {
+				return
+			}
+
+			if (shouldScroll) {
+				scrollToBottom()
+			} else if (store.lastScrollTop != null) {
+				consoleContainer.scrollTop = store.lastScrollTop
+			}
+		})
 	}
 
 	$effect(() => {
@@ -77,19 +92,7 @@
 			return
 		}
 
-		scrollToBottomIfNeeded()
-	})
-
-	$effect(() => {
-		if (!consoleContainer) {
-			return
-		}
-
-		if (store.lastShouldScroll) {
-			scrollToBottom()
-		} else if (store.lastScrollTop != null) {
-			consoleContainer.scrollTop = store.lastScrollTop
-		}
+		queueScrollSync()
 	})
 
 	$effect(() => {
@@ -113,12 +116,8 @@
 		store.history.add(command)
 
 		server.sendCommandGetResponsesMany(command, (response) => {
-			const msg = store.parseMessage(response)
-			if (userCommand.responses == null) {
-				userCommand.responses = []
-			}
-			userCommand.responses.push(msg)
-			scrollToBottomIfNeeded()
+			queueScrollSync()
+			store.addCommandResponse(userCommand, response)
 		})
 
 		store.commandInput = ''

@@ -6,6 +6,21 @@ import type { RustServer } from '../core/rust-server.svelte'
 
 const map = new Map<number, ServerConsoleStore>()
 
+function scheduleNextFrame(callback: () => void): number {
+	if (typeof requestAnimationFrame === 'function') {
+		return requestAnimationFrame(callback)
+	}
+	return setTimeout(callback, 16) as unknown as number
+}
+
+function cancelScheduledFrame(handle: number) {
+	if (typeof cancelAnimationFrame === 'function') {
+		cancelAnimationFrame(handle)
+		return
+	}
+	clearTimeout(handle)
+}
+
 export enum ServerConsoleMessageType {
 	Console = 0,
 	UserCommand = 1,
@@ -54,6 +69,9 @@ export class ServerConsoleStore {
 	public isPopulatedConsole: boolean = $state(false)
 	private unsubscribeOnMessagesGeneral: (() => void) | null = null
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
+	private pendingMessages: ServerConsoleMessage[] = []
+	private pendingCommandResponses = new Map<ServerConsoleMessage, ServerConsoleMessage[]>()
+	private pendingFrameHandle: number | null = null
 
 	constructor(config: ConfigGlobal) {
 		this.config = config
@@ -85,6 +103,42 @@ export class ServerConsoleStore {
 	private pushMessages(msgs: ServerConsoleMessage[]) {
 		this.clampMessagesIfNeeded(msgs.length)
 		this.messages.push(...msgs)
+	}
+
+	private schedulePendingFlush() {
+		if (this.pendingFrameHandle != null) {
+			return
+		}
+
+		this.pendingFrameHandle = scheduleNextFrame(() => {
+			this.pendingFrameHandle = null
+			this.flushPendingMessages()
+		})
+	}
+
+	private flushPendingMessages() {
+		if (this.pendingMessages.length > 0) {
+			this.pushMessages(this.pendingMessages)
+			this.pendingMessages = []
+		}
+
+		if (this.pendingCommandResponses.size === 0) {
+			return
+		}
+
+		for (const [commandMessage, responses] of this.pendingCommandResponses) {
+			if (commandMessage.responses == null) {
+				commandMessage.responses = []
+			}
+			commandMessage.responses.push(...responses)
+		}
+
+		this.pendingCommandResponses.clear()
+	}
+
+	private enqueueMessage(msg: ServerConsoleMessage) {
+		this.pendingMessages.push(msg)
+		this.schedulePendingFlush()
 	}
 
 	addMessageRaw(message: string, type: ServerConsoleMessageType, consoleType: LogType = LogType.Generic) {
@@ -121,7 +175,7 @@ export class ServerConsoleStore {
 
 	addMessage(message: CommandResponse): ServerConsoleMessage {
 		const msg = this.parseMessage(message)
-		this.pushMessage(msg)
+		this.enqueueMessage(msg)
 		return msg
 	}
 
@@ -133,7 +187,7 @@ export class ServerConsoleStore {
 
 	addChatMessage(message: ChatEntry): ServerConsoleMessage {
 		const msg = this.parseChatMessage(message)
-		this.pushMessage(msg)
+		this.enqueueMessage(msg)
 		return msg
 	}
 
@@ -144,6 +198,17 @@ export class ServerConsoleStore {
 		} else {
 			return this.addMessage(message)
 		}
+	}
+
+	addCommandResponse(commandMessage: ServerConsoleMessage, message: CommandResponse) {
+		const msg = this.parseMessage(message)
+		const pendingResponses = this.pendingCommandResponses.get(commandMessage)
+		if (pendingResponses) {
+			pendingResponses.push(msg)
+		} else {
+			this.pendingCommandResponses.set(commandMessage, [msg])
+		}
+		this.schedulePendingFlush()
 	}
 
 	async tryPopulateConsole(server: RustServer) {
@@ -233,6 +298,12 @@ export class ServerConsoleStore {
 		this.unsubscribeOnMessagesGeneral = null
 		this.unsubscribeOnMessagesPlayerRelated?.()
 		this.unsubscribeOnMessagesPlayerRelated = null
+		if (this.pendingFrameHandle != null) {
+			cancelScheduledFrame(this.pendingFrameHandle)
+			this.pendingFrameHandle = null
+		}
+		this.pendingMessages = []
+		this.pendingCommandResponses.clear()
 		this.messages.length = 0
 	}
 }

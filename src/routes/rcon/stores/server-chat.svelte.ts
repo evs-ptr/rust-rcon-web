@@ -4,6 +4,21 @@ import { parseChatEntries, parseChatEntry, type ChatEntry } from '../core/rust-r
 import { LogType, type CommandResponse } from '../core/rust-rcon.types'
 import type { RustServer } from '../core/rust-server.svelte'
 
+function scheduleNextFrame(callback: () => void): number {
+	if (typeof requestAnimationFrame === 'function') {
+		return requestAnimationFrame(callback)
+	}
+	return setTimeout(callback, 16) as unknown as number
+}
+
+function cancelScheduledFrame(handle: number) {
+	if (typeof cancelAnimationFrame === 'function') {
+		cancelAnimationFrame(handle)
+		return
+	}
+	clearTimeout(handle)
+}
+
 export class ServerChatMessage {
 	private static idCounter = 0
 	public readonly id: number
@@ -31,6 +46,8 @@ export class ServerChatStore {
 	public isPopulatedChat: boolean = $state(false)
 
 	private unsubscribeOnMessagesPlayerRelated: (() => void) | null = null
+	private pendingMessages: ServerChatMessage[] = []
+	private pendingFrameHandle: number | null = null
 
 	constructor(config: ConfigGlobal) {
 		this.config = config
@@ -64,13 +81,38 @@ export class ServerChatStore {
 		this.chatMessages.push(...msgs)
 	}
 
+	private schedulePendingFlush() {
+		if (this.pendingFrameHandle != null) {
+			return
+		}
+
+		this.pendingFrameHandle = scheduleNextFrame(() => {
+			this.pendingFrameHandle = null
+			this.flushPendingMessages()
+		})
+	}
+
+	private flushPendingMessages() {
+		if (this.pendingMessages.length === 0) {
+			return
+		}
+
+		this.pushMessages(this.pendingMessages)
+		this.pendingMessages = []
+	}
+
+	private enqueueMessage(msg: ServerChatMessage) {
+		this.pendingMessages.push(msg)
+		this.schedulePendingFlush()
+	}
+
 	parseChatMessage(message: ChatEntry): ServerChatMessage {
 		return new ServerChatMessage(message)
 	}
 
 	addChatMessage(message: ChatEntry): ServerChatMessage {
 		const msg = this.parseChatMessage(message)
-		this.pushMessage(msg)
+		this.enqueueMessage(msg)
 		return msg
 	}
 
@@ -123,6 +165,11 @@ export class ServerChatStore {
 	destroy() {
 		this.unsubscribeOnMessagesPlayerRelated?.()
 		this.unsubscribeOnMessagesPlayerRelated = null
+		if (this.pendingFrameHandle != null) {
+			cancelScheduledFrame(this.pendingFrameHandle)
+			this.pendingFrameHandle = null
+		}
+		this.pendingMessages = []
 		this.chatMessages.length = 0
 	}
 }

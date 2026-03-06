@@ -16,6 +16,7 @@
 	let store: ServerChatStore = $derived(getServerChatStore(server.id, config))
 
 	let chatContainer: HTMLDivElement | undefined
+	let pendingScrollSync = false
 
 	function calculateShouldScroll() {
 		const SCROLL_THRESHOLD = 16 * 2
@@ -43,13 +44,27 @@
 		store.lastShouldScroll = calculateShouldScroll()
 	}
 
-	function scrollToBottomIfNeeded() {
-		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
-		if (shouldScroll) {
-			tick().then(() => {
-				scrollToBottom()
-			})
+	function queueScrollSync() {
+		if (!chatContainer || pendingScrollSync) {
+			return
 		}
+
+		const shouldScroll = calculateShouldScroll() && (store.lastShouldScroll || store.lastShouldScroll == null)
+		pendingScrollSync = true
+
+		tick().then(() => {
+			pendingScrollSync = false
+
+			if (!chatContainer) {
+				return
+			}
+
+			if (shouldScroll) {
+				scrollToBottom()
+			} else if (store.lastScrollTop != null) {
+				chatContainer.scrollTop = store.lastScrollTop
+			}
+		})
 	}
 
 	$effect(() => {
@@ -72,19 +87,7 @@
 			return
 		}
 
-		scrollToBottomIfNeeded()
-	})
-
-	$effect(() => {
-		if (!chatContainer) {
-			return
-		}
-
-		if (store.lastShouldScroll) {
-			scrollToBottom()
-		} else if (store.lastScrollTop != null) {
-			chatContainer.scrollTop = store.lastScrollTop
-		}
+		queueScrollSync()
 	})
 
 	$effect(() => {
