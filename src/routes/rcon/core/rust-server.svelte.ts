@@ -202,7 +202,7 @@ export class RustServer {
 	private async probeFrameworkCommand(command: string, generation: number): Promise<boolean | null> {
 		try {
 			const response = await this.sendCommandGetResponse(command, {
-				timeout: 8_000,
+				timeout: 60_000,
 				onLateResponse: () => {
 					this.markCommandReady()
 					this.applyFrameworkProbeResult(command, true, generation)
